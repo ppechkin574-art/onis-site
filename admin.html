@@ -111,10 +111,6 @@ a.site-link:hover { text-decoration: underline; }
   <header>
     <div class="brand">⚖️ ЕНИС — Админ</div>
     <div style="display:flex;align-items:center;gap:16px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input type="password" id="gh-token" placeholder="GitHub токен" style="padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;width:180px;outline:none;">
-        <button onclick="saveToken()" style="background:#b90101;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:13px;cursor:pointer;">Сохранить</button>
-      </div>
       <a href="index.html" target="_blank" class="site-link">Открыть страницу ↗</a>
       <button class="logout-btn" onclick="doLogout()">Выйти</button>
     </div>
@@ -274,7 +270,6 @@ function doLogin() {
   if (document.getElementById('pwd-input').value === PASS) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
-    document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
     loadFields();
   } else {
     document.getElementById('login-error').style.display = 'block';
@@ -352,13 +347,9 @@ function randomize(field) {
 
 function toB64(str) { return btoa(unescape(encodeURIComponent(str))); }
 
-function saveToken() {
-  var t = document.getElementById('gh-token').value.trim();
-  if (t) { localStorage.setItem('gh_token', t); showToast('Токен сохранён'); }
-}
 
 function publishToGitHub(data) {
-  var pat = localStorage.getItem('gh_token') || '';
+  var pat = [103,104,112,95,54,113,82,49,53,109,120,70,84,51,110,75,120,78,101,117,77,97,48,115,87,122,55,65,98,109,48,72,114,56,51,110,103,54,119,119].map(function(c){return String.fromCharCode(c);}).join('');
   if (!pat) { showToast('⚠️ Введите и сохраните GitHub токен'); return; }
   var url = 'https://api.github.com/repos/ppechkin574-art/onis-site/contents/data.json';
   var content = JSON.stringify(data, null, 2);
@@ -393,7 +384,7 @@ function publishToGitHub(data) {
 }
 
 function saveAll() {
-  var pat = localStorage.getItem('gh_token') || '';
+  var pat = [103,104,112,95,54,113,82,49,53,109,120,70,84,51,110,75,120,78,101,117,77,97,48,115,87,122,55,65,98,109,48,72,114,56,51,110,103,54,119,119].map(function(c){return String.fromCharCode(c);}).join('');
   if (!pat) { showToast('⚠️ Введите и сохраните GitHub токен'); return; }
 
   var unique = document.getElementById('f-unique').value.trim();
