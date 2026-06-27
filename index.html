@@ -631,11 +631,18 @@
     function load() {
       try {
         var s = localStorage.getItem('onis_data');
-        return s ? JSON.parse(s) : DEFAULTS;
-      } catch(e) { return DEFAULTS; }
+        // Merge stored with DEFAULTS so new fields added later always have values
+        return s ? Object.assign({}, DEFAULTS, JSON.parse(s)) : Object.assign({}, DEFAULTS);
+      } catch(e) { return Object.assign({}, DEFAULTS); }
     }
 
-    function setEl(id, val) {
+    function setText(id, val) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = val;
+    }
+
+    function setHtml(id, val) {
       var el = document.getElementById(id);
       if (!el) return;
       el.innerHTML = val;
@@ -643,17 +650,19 @@
 
     function render() {
       var d = load();
-      setEl('unique-number', d.uniqueNum || DEFAULTS.uniqueNum);
-      setEl('registry-number', d.registryNum || DEFAULTS.registryNum);
-      setEl('dateOfCreated', d.dateStr || DEFAULTS.dateStr);
-      setEl('field-type', d.actionType || DEFAULTS.actionType);
-      setEl('field-status', d.status || DEFAULTS.status);
+      // Use textContent for plain-text fields (safe against HTML injection)
+      setText('unique-number', d.uniqueNum);
+      setText('registry-number', d.registryNum);
+      setText('dateOfCreated', d.dateStr);
+      setText('field-type', d.actionType);
+      setText('field-status', d.status);
       var nLink = document.getElementById('field-notary-link');
-      if (nLink) nLink.textContent = d.notaryName || DEFAULTS.notaryName;
+      if (nLink) nLink.textContent = d.notaryName;
       var nCh = document.getElementById('field-notary-chamber');
-      if (nCh) nCh.textContent = d.notaryChamber || DEFAULTS.notaryChamber;
-      setEl('field-participants', d.participants || DEFAULTS.participants);
-      setEl('field-note', d.note !== undefined ? d.note : DEFAULTS.note);
+      if (nCh) nCh.textContent = d.notaryChamber;
+      // Use innerHTML only for participants (contains <br/> markup) and note
+      setHtml('field-participants', d.participants);
+      setHtml('field-note', d.note);
     }
 
     render();
