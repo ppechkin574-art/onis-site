@@ -78,6 +78,7 @@ main { max-width: 760px; margin: 36px auto; padding: 0 24px 60px; }
   border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background .2s;
 }
 .save-btn:hover { background: #9a0000; }
+.save-btn:disabled { background: #ccc; cursor: not-allowed; }
 
 .toast {
   position: fixed; bottom: 28px; right: 28px; background: #1a1a2e; color: #fff;
@@ -110,6 +111,10 @@ a.site-link:hover { text-decoration: underline; }
   <header>
     <div class="brand">⚖️ ЕНИС — Админ</div>
     <div style="display:flex;align-items:center;gap:16px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="password" id="gh-token" placeholder="GitHub токен" style="padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;width:180px;outline:none;">
+        <button onclick="saveToken()" style="background:#b90101;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:13px;cursor:pointer;">Сохранить</button>
+      </div>
       <a href="index.html" target="_blank" class="site-link">Открыть страницу ↗</a>
       <button class="logout-btn" onclick="doLogout()">Выйти</button>
     </div>
@@ -117,7 +122,7 @@ a.site-link:hover { text-decoration: underline; }
 
   <main>
     <div class="page-title">Данные нотариального действия</div>
-    <div class="page-sub">Изменения сразу отображаются на публичной странице</div>
+    <div class="page-sub">Изменения публикуются в GitHub и появляются на сайте через ~1-2 мин</div>
 
     <!-- Block 1: Основные реквизиты -->
     <div class="card">
@@ -240,7 +245,7 @@ a.site-link:hover { text-decoration: underline; }
       </div>
     </div>
 
-    <button class="save-btn" onclick="saveAll()">💾 Сохранить изменения</button>
+    <button class="save-btn" id="save-btn" onclick="saveAll()">💾 Сохранить изменения</button>
   </main>
 </div>
 
@@ -269,6 +274,7 @@ function doLogin() {
   if (document.getElementById('pwd-input').value === PASS) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
+    document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
     loadFields();
   } else {
     document.getElementById('login-error').style.display = 'block';
@@ -284,28 +290,41 @@ function doLogout() {
   document.getElementById('pwd-input').value = '';
 }
 
-function getData() {
-  try {
-    var s = localStorage.getItem('onis_data');
-    return s ? Object.assign({}, DEFAULTS, JSON.parse(s)) : Object.assign({}, DEFAULTS);
-  } catch(e) { return Object.assign({}, DEFAULTS); }
-}
-
 function loadFields() {
-  var d = getData();
-  document.getElementById('f-type').value = d.actionType;
-  document.getElementById('f-status').value = d.status;
-  document.getElementById('f-registry').value = d.registryNum;
-  document.getElementById('f-date').value = d.dateStr;
-  document.getElementById('f-notary-name').value = d.notaryName;
-  document.getElementById('f-notary-chamber').value = d.notaryChamber;
-  document.getElementById('f-unique').value = d.uniqueNum;
-  document.getElementById('f-side1-name').value = d.side1Name;
-  document.getElementById('f-side1-location').value = d.side1Location;
-  document.getElementById('f-side2-name').value = d.side2Name;
-  document.getElementById('f-side2-dob').value = d.side2Dob;
-  document.getElementById('f-side2-origin').value = d.side2Origin;
-  document.getElementById('f-note').value = d.note;
+  fetch('/data.json', { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(raw) {
+      var d = Object.assign({}, DEFAULTS, raw || {});
+      document.getElementById('f-type').value = d.actionType;
+      document.getElementById('f-status').value = d.status;
+      document.getElementById('f-registry').value = d.registryNum;
+      document.getElementById('f-date').value = d.dateStr;
+      document.getElementById('f-notary-name').value = d.notaryName;
+      document.getElementById('f-notary-chamber').value = d.notaryChamber;
+      document.getElementById('f-unique').value = d.uniqueNum;
+      document.getElementById('f-side1-name').value = d.side1Name;
+      document.getElementById('f-side1-location').value = d.side1Location;
+      document.getElementById('f-side2-name').value = d.side2Name;
+      document.getElementById('f-side2-dob').value = d.side2Dob;
+      document.getElementById('f-side2-origin').value = d.side2Origin;
+      document.getElementById('f-note').value = d.note;
+    })
+    .catch(function() {
+      var d = DEFAULTS;
+      document.getElementById('f-type').value = d.actionType;
+      document.getElementById('f-status').value = d.status;
+      document.getElementById('f-registry').value = d.registryNum;
+      document.getElementById('f-date').value = d.dateStr;
+      document.getElementById('f-notary-name').value = d.notaryName;
+      document.getElementById('f-notary-chamber').value = d.notaryChamber;
+      document.getElementById('f-unique').value = d.uniqueNum;
+      document.getElementById('f-side1-name').value = d.side1Name;
+      document.getElementById('f-side1-location').value = d.side1Location;
+      document.getElementById('f-side2-name').value = d.side2Name;
+      document.getElementById('f-side2-dob').value = d.side2Dob;
+      document.getElementById('f-side2-origin').value = d.side2Origin;
+      document.getElementById('f-note').value = d.note;
+    });
 }
 
 function pad(n, len) { return String(n).padStart(len, '0'); }
@@ -331,26 +350,52 @@ function randomize(field) {
   }
 }
 
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+function toB64(str) { return btoa(unescape(encodeURIComponent(str))); }
+
+function saveToken() {
+  var t = document.getElementById('gh-token').value.trim();
+  if (t) { localStorage.setItem('gh_token', t); showToast('Токен сохранён'); }
 }
 
-function toHtmlLines(str) {
-  return escHtml(str).replace(/\n/g, '<br/>');
-}
-
-function buildParticipants(d) {
-  return 'Сторона 1:<br/>' + toHtmlLines(d.side1Name) + '<br/>Местонахождение: ' + escHtml(d.side1Location) +
-    '<br/><br/><br/><br/><br/>Сторона 2:<br/>' + escHtml(d.side2Name) +
-    '<br/>Дата рождения: ' + escHtml(d.side2Dob) + '<br/>Уроженец: ' + escHtml(d.side2Origin) +
-    '<br/><br/><br/><br/><br/>';
+function publishToGitHub(data) {
+  var pat = localStorage.getItem('gh_token') || '';
+  if (!pat) { showToast('⚠️ Введите и сохраните GitHub токен'); return; }
+  var url = 'https://api.github.com/repos/ppechkin574-art/onis-site/contents/data.json';
+  var content = JSON.stringify(data, null, 2);
+  var btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Публикация...';
+  fetch(url, {
+    headers: { 'Authorization': 'token ' + pat, 'Accept': 'application/vnd.github.v3+json' }
+  })
+    .then(function(r) { if (!r.ok) throw new Error('GET failed: ' + r.status); return r.json(); })
+    .then(function(f) {
+      return fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'token ' + pat,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: 'Update data via admin', content: toB64(content), sha: f.sha })
+      });
+    })
+    .then(function(r) {
+      if (!r.ok) return r.json().then(function(e) { throw new Error(e.message); });
+      return r;
+    })
+    .then(function() { showToast('✅ Опубликовано (обновление ~1-2 мин)'); })
+    .catch(function(e) { showToast('⚠️ Ошибка: ' + e.message); })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = '💾 Сохранить изменения';
+    });
 }
 
 function saveAll() {
+  var pat = localStorage.getItem('gh_token') || '';
+  if (!pat) { showToast('⚠️ Введите и сохраните GitHub токен'); return; }
+
   var unique = document.getElementById('f-unique').value.trim();
   var registry = document.getElementById('f-registry').value.trim();
   var date = document.getElementById('f-date').value.trim();
@@ -358,12 +403,6 @@ function saveAll() {
   if (!/^\d{19}$/.test(unique)) { showToast('⚠️ Уникальный номер: ровно 19 цифр'); return; }
   if (!/^0\d{6}$/.test(registry)) { showToast('⚠️ Реестровый номер: 0 + 6 цифр'); return; }
   if (!/^\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}:\d{2}$/.test(date)) { showToast('⚠️ Дата: формат ДД.ММ.ГГГГ, ЧЧ:ММ:СС'); return; }
-
-  var side1Name = document.getElementById('f-side1-name').value.trim();
-  var side1Loc = document.getElementById('f-side1-location').value.trim();
-  var side2Name = document.getElementById('f-side2-name').value.trim();
-  var side2Dob = document.getElementById('f-side2-dob').value.trim();
-  var side2Origin = document.getElementById('f-side2-origin').value.trim();
 
   var data = {
     uniqueNum: unique,
@@ -373,21 +412,15 @@ function saveAll() {
     status: document.getElementById('f-status').value.trim(),
     notaryName: document.getElementById('f-notary-name').value.trim(),
     notaryChamber: document.getElementById('f-notary-chamber').value.trim(),
-    side1Name: side1Name,
-    side1Location: side1Loc,
-    side2Name: side2Name,
-    side2Dob: side2Dob,
-    side2Origin: side2Origin,
-    participants: buildParticipants({side1Name: side1Name, side1Location: side1Loc, side2Name: side2Name, side2Dob: side2Dob, side2Origin: side2Origin}),
+    side1Name: document.getElementById('f-side1-name').value.trim(),
+    side1Location: document.getElementById('f-side1-location').value.trim(),
+    side2Name: document.getElementById('f-side2-name').value.trim(),
+    side2Dob: document.getElementById('f-side2-dob').value.trim(),
+    side2Origin: document.getElementById('f-side2-origin').value.trim(),
     note: document.getElementById('f-note').value.trim()
   };
 
-  try {
-    localStorage.setItem('onis_data', JSON.stringify(data));
-    showToast('✅ Сохранено');
-  } catch(e) {
-    showToast('⚠️ Ошибка сохранения: ' + e.message);
-  }
+  publishToGitHub(data);
 }
 
 function showToast(msg) {

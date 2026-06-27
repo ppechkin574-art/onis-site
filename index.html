@@ -615,7 +615,7 @@
 </center>
 
 <script>
-  window.addEventListener('load', function() {
+  (function() {
     var DEFAULTS = {
       uniqueNum: '7419502836741950283',
       registryNum: '0028324',
@@ -624,37 +624,32 @@
       status: 'Действительно',
       notaryName: 'Алланиязов Амангельди Уразұлы',
       notaryChamber: 'Нотариальная палата города Уральск',
-      participants: 'Сторона 1:<br/>Западно-Казахстанский инженерно-гуманитарный университет (Институт инновационных и телекоммуникационных систем<br/>Местонахождение: Г.Уральск<br/><br/><br/><br/><br/>Сторона 2:<br/>Зейналзаде Джамилбей Расим оглу<br/>Дата рождения: 1998 г<br/>Уроженец: Азербайджан<br/><br/><br/><br/><br/>',
+      side1Name: 'Западно-Казахстанский инженерно-гуманитарный университет (Институт инновационных и телекоммуникационных систем',
+      side1Location: 'Г.Уральск',
+      side2Name: 'Зейналзаде Джамилбей Расим оглу',
+      side2Dob: '1998 г',
+      side2Origin: 'Азербайджан',
       note: ''
     };
 
-    function load() {
-      try {
-        var s = localStorage.getItem('onis_data');
-        // Merge stored with DEFAULTS so new fields added later always have values
-        return s ? Object.assign({}, DEFAULTS, JSON.parse(s)) : Object.assign({}, DEFAULTS);
-      } catch(e) { return Object.assign({}, DEFAULTS); }
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+    function setHtml(id, val) { var el = document.getElementById(id); if (el) el.innerHTML = val; }
+
+    function buildParticipants(d) {
+      function lines(s) { return esc(s).replace(/\n/g, '<br/>'); }
+      return 'Сторона 1:<br/>' + lines(d.side1Name || '') +
+        '<br/>Местонахождение: ' + esc(d.side1Location || '') +
+        '<br/><br/><br/><br/><br/>Сторона 2:<br/>' + esc(d.side2Name || '') +
+        '<br/>Дата рождения: ' + esc(d.side2Dob || '') +
+        '<br/>Уроженец: ' + esc(d.side2Origin || '') +
+        '<br/><br/><br/><br/><br/>';
     }
 
-    function setText(id, val) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.textContent = val;
-    }
-
-    function setHtml(id, val) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.innerHTML = val;
-    }
-
-    function escHtml(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    function render() {
-      var d = load();
-      // Use textContent for plain-text fields (safe against HTML injection)
+    function render(raw) {
+      var d = Object.assign({}, DEFAULTS, raw || {});
       setText('unique-number', d.uniqueNum);
       setText('registry-number', d.registryNum);
       setText('dateOfCreated', d.dateStr);
@@ -664,18 +659,15 @@
       if (nLink) nLink.textContent = d.notaryName;
       var nCh = document.getElementById('field-notary-chamber');
       if (nCh) nCh.textContent = d.notaryChamber;
-      // participants already contains <br/> markup from admin
-      setHtml('field-participants', d.participants);
-      // note: escape HTML and convert newlines to <br/>
-      setHtml('field-note', escHtml(d.note).replace(/\n/g, '<br/>'));
+      setHtml('field-participants', buildParticipants(d));
+      setHtml('field-note', esc(d.note || '').replace(/\n/g, '<br/>'));
     }
 
-    render();
-
-    window.addEventListener('storage', function(e) {
-      if (e.key === 'onis_data') render();
-    });
-  }, false);
+    fetch('/data.json', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(render)
+      .catch(function() { /* static HTML уже показывает дефолты */ });
+  })();
 </script>
 </body>
 </html>
