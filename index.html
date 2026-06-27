@@ -648,6 +648,10 @@
       el.innerHTML = val;
     }
 
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     function render() {
       var d = load();
       // Use textContent for plain-text fields (safe against HTML injection)
@@ -660,9 +664,10 @@
       if (nLink) nLink.textContent = d.notaryName;
       var nCh = document.getElementById('field-notary-chamber');
       if (nCh) nCh.textContent = d.notaryChamber;
-      // Use innerHTML only for participants (contains <br/> markup) and note
+      // participants already contains <br/> markup from admin
       setHtml('field-participants', d.participants);
-      setHtml('field-note', d.note);
+      // note: escape HTML and convert newlines to <br/>
+      setHtml('field-note', escHtml(d.note).replace(/\n/g, '<br/>'));
     }
 
     render();

@@ -331,10 +331,22 @@ function randomize(field) {
   }
 }
 
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function toHtmlLines(str) {
+  return escHtml(str).replace(/\n/g, '<br/>');
+}
+
 function buildParticipants(d) {
-  return 'Сторона 1:<br/>' + d.side1Name + '<br/>Местонахождение: ' + d.side1Location +
-    '<br/><br/><br/><br/><br/>Сторона 2:<br/>' + d.side2Name +
-    '<br/>Дата рождения: ' + d.side2Dob + '<br/>Уроженец: ' + d.side2Origin +
+  return 'Сторона 1:<br/>' + toHtmlLines(d.side1Name) + '<br/>Местонахождение: ' + escHtml(d.side1Location) +
+    '<br/><br/><br/><br/><br/>Сторона 2:<br/>' + escHtml(d.side2Name) +
+    '<br/>Дата рождения: ' + escHtml(d.side2Dob) + '<br/>Уроженец: ' + escHtml(d.side2Origin) +
     '<br/><br/><br/><br/><br/>';
 }
 
@@ -367,11 +379,15 @@ function saveAll() {
     side2Dob: side2Dob,
     side2Origin: side2Origin,
     participants: buildParticipants({side1Name: side1Name, side1Location: side1Loc, side2Name: side2Name, side2Dob: side2Dob, side2Origin: side2Origin}),
-    note: document.getElementById('f-note').value
+    note: document.getElementById('f-note').value.trim()
   };
 
-  localStorage.setItem('onis_data', JSON.stringify(data));
-  showToast('✅ Сохранено');
+  try {
+    localStorage.setItem('onis_data', JSON.stringify(data));
+    showToast('✅ Сохранено');
+  } catch(e) {
+    showToast('⚠️ Ошибка сохранения: ' + e.message);
+  }
 }
 
 function showToast(msg) {
