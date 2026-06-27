@@ -454,7 +454,7 @@
 
             <tr>
                 <th scope="row">Дата совершения:</th>
-                <td id="dateOfCreated">загрузка...</td>
+                <td id="dateOfCreated">05.06.2026, 10:25:00</td>
             </tr>
 
             <tr>
@@ -663,10 +663,10 @@
       setHtml('field-note', esc(d.note || '').replace(/\n/g, '<br/>'));
     }
 
-    fetch('/data.json', { cache: 'no-store' })
+    fetch('/data.json')
       .then(function(r) { return r.json(); })
       .then(render)
-      .catch(function() { /* static HTML уже показывает дефолты */ });
+      .catch(function() { render(DEFAULTS); });
   })();
 </script>
 </body>
