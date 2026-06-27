@@ -1,0 +1,641 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="description" content="ЕНИС - единая нотариальная информационная система, поиск нотариусов, поиск наследников, электронный нотариат РК"/>
+    <meta name="keywords" content="ЕНИС, енотариат, поиск наследников, поиск нотариусов, ТНП, РНП, документы, закон"/>
+
+    <title>Единая нотариальная информационная система РК</title>
+
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+    <style type="text/css">
+    @import url("//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css");
+
+    /* === MAIN STYLES (mains_styles.css) === */
+    @charset "utf-8";
+
+    .drop-shadow {
+      position: relative;
+      float: left;
+      width: 92%;
+      padding: 1em;
+      margin: 10px;
+      background: #fff;
+      -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) , 0 0 40px rgba(0, 0, 0, 0.1) inset;
+      -moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) , 0 0 40px rgba(0, 0, 0, 0.1) inset;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) , 0 0 40px rgba(0, 0, 0, 0.1) inset;
+    }
+
+    body,div,table,object{padding:0px;margin:0px;border-collapse:collapse;}
+    a:link,a:visited{text-decoration:none; color:#196486;}
+    a:hover{color:#b90101;text-decoration:none;}
+    ul{margin: 0;padding: 0;list-style: none;}
+    li{line-height: 17px;padding-left: 0px;padding-top: 0px;}
+    img{border:none;}
+
+    body{background-color:#FFFFFF;font-size:12px; font-family:Arial, Helvetica, sans-serif;}
+
+    #div1,.tbs0,.tbs1,.tbs2,.tbs3,.tbs4,.tbs4_1,.tbs5{width:100%;}
+    #mains_contents{width:98%;}
+    #div1{height:500px;background-color:#FFFFFF;}
+    #div2,#div6,.td0_2,.td4_2{width:998px;}
+    #div4{width:216px;vertical-align:top;}
+
+    .tbs1{height:80px;}
+    .tbs1_1{width:100px;margin-top:4px;}
+    .tbs3{background-color:#FFF;}
+    .tbs5{font-size:12px;}
+
+    .td0_1,.td0_3,.td5_0,.td5_3{background-repeat:repeat-y;}
+    .td0_1,.td5_0{background-image:url(/static/images/11.png);background-position:top right;}
+    .td0_2,.td4_2,.td5_1,.td5_2{background-image:url(/static/images/10.png);}
+    .td0_3,.td5_3{background-image:url(/static/images/12.png);background-position:top left;}
+
+    .td1_1,.td1_2,.td1_4{padding-top:5px;}
+    .td1_1{width:500px;}
+    .td1_2{width:220px;}
+    .td1_3{width:170px;}
+
+    .tbs1_1 td{width:50%; font-size:13px; font-weight:bold;}
+    .tbs1_1 div{height:22px; padding-top:3px;}
+
+    .tbs2 a:link,.tbs2 a:visited{color:#FFF;font-size:13px;font-weight:bold;}
+    .tbs2 a:hover{color:#FF3;}
+
+    .td2_2 a:link,.td2_2 a:visited{color:#2b3d46;font-size:12px;font-weight:bold;}
+    .td2_2 a:hover{color:#b11101;}
+
+    .td2_1{height:26px;}
+    .td2_4,.td2_5,.td2_6,.td2_7{background-color:#c72b1c;}
+    .td2_2,.td2_8{padding-top:10px;}
+    .td2_2{width:120px;}
+    .td2_3{width:30px; background-image:url(/static/images/2.png);background-position:top left;background-repeat:no-repeat;}
+    .td2_4{width:600px;}
+    .td2_5{width:120px;}
+    .td2_6{width:120px;}
+    .td2_7{width:120px;}
+    .td2_8{width:166px; background-color:#586b75;}
+
+    .td3_1{width:16px;height:12px;background-image:url(/static/images/4.png);background-position:bottom left; background-repeat:no-repeat;}
+    .td3_2{}
+    .td3_3{}
+    .td3_4{}
+    .td3_5{width:237px;background-image:url(/static/images/5.png);background-position:top center;background-repeat:repeat-x;padding-top:15px;}
+
+    .td4_1{height:90px;background-image:url(/static/images/11.png);background-position:top right;}
+    .td4_1,.td4_3{background-repeat:repeat-y;}
+    .td4_3{background-image:url(/static/images/12.png);background-position:top left;}
+
+    .td4_1_1{width:197px;}
+    .td4_1_1 a:link,.td4_1_1 a:visited{font-size:11px;color:#333;text-transform:uppercase;}
+    .td4_1_1 a:hover{color:#c72b1c;}
+    .imgs4_1{padding-bottom:19px;}
+    .imgs4_2{padding-bottom:0px;}
+
+    .td5_1{width:600px;}
+    .td5_2{width:398px;}
+
+    .span5_1{color:#c72b1c;}
+    .span5_2{color:#000000;}
+    .span5_3{color:#848484;}
+
+    #div1_1_1,#div1_1_2:hover{background-color:#586b75;color:#FFF;}
+    #div1_1_2{background:none; color:#c72b1c;}
+
+    .homes{margin-right:1px;}
+    .regs{margin-right:8px;}
+    .logos{margin-right:15px;}
+    .names{width:420px; font-size:13px; color:#374d59; font-weight:bold; text-transform:uppercase;margin-top:4px;}
+
+    .cols0{width:155px; font-size:12px; font-weight:bold; text-transform:uppercase; margin-top:9px;}
+    .cols1{color:#c72b1c;}
+    .cols2{color:#586b75;font-size:16px;}
+
+    .inputbox-searches{width:162px; height:26px; font-size:12px; color:#666; padding-left:10px;}
+    .button-searches{width:32px;height:32px; margin-left:3px; background-image:url(/static/images/6.png);background-position:top center;background-repeat:no-repeat; border:none;}
+
+    #banners_rights{width:100%; height:138px;background-color:#c72b1c;text-align:center}
+    .banners_hrefs:link,.banners_hrefs,.banners_hrefs:visited{font-size:13px; color:#FFF;}
+    .banners_hrefs:hover{color:#FF3;}
+    .banners_rights_imgs{padding-bottom:4px;}
+    .banners_rights_texts{margin-left:10px;}
+
+    /* SF-MENU */
+    .sf-menu, .sf-menu * {margin:0;padding:0;list-style:none;}
+    .sf-menu {line-height:1.0;}
+    .sf-menu ul {position:absolute;top:-999em;}
+    .sf-menu li:hover {visibility:inherit;}
+    .sf-menu li {float:left;position:relative;}
+    .sf-menu a {display:block;position:relative;}
+    .sf-menu li:hover ul,
+    .sf-menu li.sfHover ul {left:0;top:3em;z-index:99;}
+    .sf-menu {float:left;}
+    .sf-menu a {padding:.75em 1em;text-decoration:none;}
+    .sf-menu li li a {padding:.4em 1em;font-size:12px;}
+    .sf-menu li li {background:#c72b1c;}
+    .sf-menu li li li {background:#c72b1c;}
+    .sf-menu li:hover, .sf-menu li.sfHover,
+    .sf-menu a:focus, .sf-menu a:hover, .sf-menu a:active {background:#b71000;outline:0;}
+
+    .current1,.current2,.current3,.current4,.current5{text-align:center;}
+    .current1{width:110px;}
+    .current2{width:110px;}
+    .current3{width:95px;}
+    .current4{width:97px;}
+    .current5{width:97px;}
+    .current6{width:90px;}
+    .sf-menu li li{width:200px;text-align:left;}
+
+    /* === PAGE-SPECIFIC STYLES === */
+    #mains_contents {
+        width: 98%;
+    }
+
+    .info-msg,
+    .success-msg,
+    .warning-msg,
+    .error-msg {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 3px 3px 3px 3px;
+    }
+    .info-msg { color: #059; background-color: #bef; }
+    .success-msg { color: #270; background-color: #dff2bf; }
+    .warning-msg { color: #9f6000; background-color: #feefb3; }
+    .error-msg { color: #d8000c; background-color: #ffbaba; }
+
+    .container {
+      margin: 5% 3%;
+    }
+    @media (min-width: 24em) {
+      .container { margin: 2%; }
+    }
+    @media (min-width: 75em) {
+      .container { margin: 2em auto; max-width: 75em; }
+    }
+
+    .responsive-table {
+      width: 100%;
+      margin-bottom: 1.5em;
+      border-spacing: 0;
+    }
+    @media (min-width: 24em) {
+      .responsive-table { font-size: 0.9em; }
+    }
+    @media (min-width: 62em) {
+      .responsive-table { font-size: 1em; }
+    }
+    .responsive-table thead {
+      position: absolute;
+      clip: rect(1px 1px 1px 1px);
+      padding: 0; border: 0; height: 1px; width: 1px; overflow: hidden;
+    }
+    @media (min-width: 24em) {
+      .responsive-table thead { position: relative; clip: auto; height: auto; width: auto; overflow: auto; }
+    }
+    .responsive-table thead th {
+      background-color: #1d96b2;
+      border: 1px solid #1d96b2;
+      font-weight: normal;
+      text-align: center;
+      color: white;
+    }
+    .responsive-table thead th:first-of-type { text-align: left; }
+    .responsive-table tbody,
+    .responsive-table tr,
+    .responsive-table th,
+    .responsive-table td {
+      display: block; padding: 0; text-align: left; white-space: normal;
+    }
+    @media (min-width: 24em) {
+      .responsive-table tr { display: table-row; }
+    }
+    .responsive-table th,
+    .responsive-table td {
+      padding: 0.5em; vertical-align: middle;
+    }
+    @media (min-width: 30em) {
+      .responsive-table th, .responsive-table td { padding: 0.75em 0.5em; }
+    }
+    @media (min-width: 24em) {
+      .responsive-table th, .responsive-table td { display: table-cell; padding: 0.5em; }
+    }
+    @media (min-width: 62em) {
+      .responsive-table th, .responsive-table td { padding: 0.75em 0.5em; }
+    }
+    @media (min-width: 75em) {
+      .responsive-table th, .responsive-table td { padding: 0.75em; }
+    }
+    .responsive-table caption {
+      margin-bottom: 1em; font-size: 1em; font-weight: bold; text-align: center;
+    }
+    @media (min-width: 24em) {
+      .responsive-table caption { font-size: 1.5em; }
+    }
+    .responsive-table tfoot { font-size: 0.8em; font-style: italic; }
+    @media (min-width: 62em) {
+      .responsive-table tfoot { font-size: 0.9em; }
+    }
+    @media (min-width: 24em) {
+      .responsive-table tbody { display: table-row-group; }
+    }
+    .responsive-table tbody tr { margin-bottom: 1em; }
+    @media (min-width: 24em) {
+      .responsive-table tbody tr { display: table-row; border-width: 1px; }
+    }
+    .responsive-table tbody tr:last-of-type { margin-bottom: 0; }
+    @media (min-width: 24em) {
+      .responsive-table tbody tr:nth-of-type(even) { background-color: rgba(94, 93, 82, 0.1); }
+    }
+    .responsive-table tbody th[scope=row] { background-color: #1d96b2; color: white; }
+    @media (min-width: 30em) {
+      .responsive-table tbody th[scope=row] { border: 1px solid #1d96b2; }
+    }
+    @media (min-width: 24em) {
+      .responsive-table tbody th[scope=row] { background-color: transparent; color: #5e5d52; text-align: left; }
+    }
+    .responsive-table tbody td { text-align: right; }
+    @media (min-width: 24em) {
+      .responsive-table tbody td { border: 1px solid #1d96b2; text-align: center; }
+    }
+    @media (min-width: 24em) {
+      .responsive-table tbody td:last-of-type { border-right: 1px solid #1d96b2; }
+    }
+    .responsive-table tbody td[data-type=currency] { text-align: right; }
+    .responsive-table tbody td[data-title]:before {
+      content: attr(data-title); float: left; font-size: 0.8em; color: rgba(94, 93, 82, 0.75);
+    }
+    @media (min-width: 30em) {
+      .responsive-table tbody td[data-title]:before { font-size: 0.9em; }
+    }
+    @media (min-width: 24em) {
+      .responsive-table tbody td[data-title]:before { content: none; }
+    }
+    </style>
+</head>
+
+<body>
+
+<center>
+
+<div id="div1">
+
+    <table class="tbs0">
+        <tr valign="top" align="center">
+            <td class="td0_1"></td>
+            <td class="td0_2">
+
+                <div>&nbsp;</div>
+
+                <div id="div2">
+
+                    <table class="tbs1">
+                        <tr valign="top">
+                            <td class="td1_1" align="left">
+                                <a href="https://onis.kz/" title="Единая нотариальная информационная система">
+                                    <img class="logos" src="/static/images/logo.png" align="left" />
+                                </a>
+                                <div class="names">
+                                    Единая нотариальная информационная система
+                                </div>
+                            </td>
+                            <td class="td1_2" align="left">
+                                <table class="tbs1_1">
+                                    <tr valign="top" align="center">
+                                        <td>
+                                            <a href="https://onis.kz/">
+                                                <div id="div1_1_2">&#1178;&#1072;&#1079;</div>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a href="https://onis.kz/">
+                                                <div id="div1_1_1">Рус</div>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td class="td1_3" align="right"></td>
+                            <td class="td1_4" align="right"></td>
+                        </tr>
+                    </table>
+
+                    <table class="tbs2">
+                    <tr valign="top" align="center">
+                        <td class="td2_1">&nbsp;</td>
+                        <td class="td2_2">
+                            <a href="https://onis.kz/">
+                                <img class="homes" src="/static/images/homes.png" align="left" />
+                                Главная
+                            </a>
+                        </td>
+                        <td class="td2_3">&nbsp;</td>
+                        <td class="td2_4">
+                            <ul class="sf-menu">
+                                <li class="current1">
+                                    <a href="https://onis.kz/">Нотариат</a>
+                                    <ul>
+                                        <li><a href="https://onis.kz/">Основные сведения</a></li>
+                                        <li><a href="https://onis.kz/">Нотариат в мире</a></li>
+                                        <li><a href="https://onis.kz/">территория деятельности</a></li>
+                                        <li><a href="https://onis.kz/">О профессии</a></li>
+                                        <li><a href="https://onis.kz/">История нотариата</a></li>
+                                        <li><a href="https://onis.kz/">Кодекс чести нотариуса</a></li>
+                                    </ul>
+                                </li>
+                                <li class="current2"><a href="https://onis.kz/">Нотариусы</a>
+                                    <ul>
+                                        <li><a href="https://onis.kz/">Акмолинская область</a></li>
+                                        <li><a href="https://onis.kz/">Актюбинская область</a></li>
+                                        <li><a href="https://onis.kz/">Алматинская область</a></li>
+                                        <li><a href="https://onis.kz/">Алматы</a></li>
+                                        <li><a href="https://onis.kz/">Астана</a></li>
+                                        <li><a href="https://onis.kz/">Атырауская область</a></li>
+                                        <li><a href="https://onis.kz/">ВКО</a></li>
+                                        <li><a href="https://onis.kz/">Жамбылская область</a></li>
+                                        <li><a href="https://onis.kz/">ЗКО</a></li>
+                                        <li><a href="https://onis.kz/">Карагандинская область</a></li>
+                                        <li><a href="https://onis.kz/">Кызылординская область</a></li>
+                                        <li><a href="https://onis.kz/">Костанайская область</a></li>
+                                        <li><a href="https://onis.kz/">Мангистауская область</a></li>
+                                        <li><a href="https://onis.kz/">Павлодарская область</a></li>
+                                        <li><a href="https://onis.kz/">СКО</a></li>
+                                        <li><a href="https://onis.kz/">Шымкент</a></li>
+                                        <li><a href="https://onis.kz/">Туркестанская область</a></li>
+                                        <li><a href="https://onis.kz/">область Абай</a></li>
+                                        <li><a href="https://onis.kz/">область Жетісу</a></li>
+                                        <li><a href="https://onis.kz/">область Ұлытау</a></li>
+                                    </ul>
+                                </li>
+                                <li class="current3"><a href="https://onis.kz/">ДЮ</a></li>
+                                <li class="current4"><a href="https://onis.kz/">ТНП</a>
+                                    <ul>
+                                        <li><a href="https://onis.kz/">Акмолинская область</a></li>
+                                        <li><a href="https://onis.kz/">Актюбинская область</a></li>
+                                        <li><a href="https://onis.kz/">Алматинская область</a></li>
+                                        <li><a href="https://onis.kz/">Алматы</a></li>
+                                        <li><a href="https://onis.kz/">Астана</a></li>
+                                        <li><a href="https://onis.kz/">Атырауская область</a></li>
+                                        <li><a href="https://onis.kz/">ВКО</a></li>
+                                        <li><a href="https://onis.kz/">Жамбылская область</a></li>
+                                        <li><a href="https://onis.kz/">ЗКО</a></li>
+                                        <li><a href="https://onis.kz/">Карагандинская область</a></li>
+                                        <li><a href="https://onis.kz/">Кызылординская область</a></li>
+                                        <li><a href="https://onis.kz/">Костанайская область</a></li>
+                                        <li><a href="https://onis.kz/">Мангистауская область</a></li>
+                                        <li><a href="https://onis.kz/">Павлодарская область</a></li>
+                                        <li><a href="https://onis.kz/">СКО</a></li>
+                                        <li><a href="https://onis.kz/">Шымкент</a></li>
+                                        <li><a href="https://onis.kz/">Туркестанская область</a></li>
+                                        <li><a href="https://onis.kz/">область Абай</a></li>
+                                        <li><a href="https://onis.kz/">область Жетісу</a></li>
+                                        <li><a href="https://onis.kz/">область Ұлытау</a></li>
+                                    </ul>
+                                </li>
+                                <li class="current5"><a href="https://onis.kz/">Сервисы</a>
+                                    <ul>
+                                        <li><a href="https://onis.kz/">Поиск нотариуса</a></li>
+                                        <li><a href="https://onis.kz/">Проверка нотариального действия по уникальному номеру</a></li>
+                                        <li><a href="https://onis.kz/">Проверка заявки на регистрацию недв-ти</a></li>
+                                        <li><a href="https://onis.kz/">Проверка доверенности</a></li>
+                                        <li><a href="https://onis.kz/">Проверка исполнительной надписи</a></li>
+                                        <li><a href="https://onis.kz/">Розыск наследников</a></li>
+                                        <li><a href="https://onis.kz/">Проверка наследственных дел</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </td>
+                        <td class="td2_8">
+                            <a href="https://onis.kz/">
+                                <img class="regs" src="/static/images/regs.png" align="right" />
+                                Вход
+                            </a>
+                        </td>
+                    </tr>
+                    </table>
+
+                    <table class="tbs3">
+                      <tr valign="top" align="left">
+                        <td class="td3_1"> </td>
+                        <td colspan="2" class="td3_2"> </td>
+                      </tr>
+                      <tr valign="top" align="left">
+                        <td class="td3_3"> </td>
+                        <td class="td3_4">
+                            <div id="mains_contents">
+<div class="container">
+      <table class="responsive-table">
+        <caption>Проверка нотариального действия</caption>
+
+        <tfoot>
+          <tr>
+            <td colspan="2">Уникальный номер нотариального действия: <b>7419502836741950283</b></td>
+          </tr>
+        </tfoot>
+        <tbody>
+
+            <tr>
+                <th scope="row" style="width: 200px !important">Тип действия:</th>
+                <td>Справка с места обучения</td>
+            </tr>
+
+            <tr>
+                <th scope="row">Статус:</th>
+                <td>Действительно</td>
+            </tr>
+
+            <tr>
+                <th scope="row">Реестровый номер:</th>
+                <td>0028324</td>
+            </tr>
+
+            <tr>
+                <th scope="row">Дата совершения:</th>
+                <td id="dateOfCreated">загрузка...</td>
+            </tr>
+
+            <tr>
+                <th scope="row">Нотариус:</th>
+                <td><a href="https://onis.kz/">Алланиязов Амангельди Уразұлы</a>
+                    <br/>
+                    Нотариальная палата города Уральск
+                </td>
+            </tr>
+
+            <tr>
+                <th scope="row">Участники:</th>
+                <td>Сторона 1:<br/>Западно-Казахстанский инженерно-гуманитарный университет (Институт инновационных и телекоммуникационных систем<br/>Местонахождение: Г.Уральск<br/><br/><br/><br/><br/>Сторона 2:<br/>Зейналзаде Джамилбей Расим оглу<br/>Дата рождения: 1998 г<br/>Уроженец: Азербайджан<br/><br/><br/><br/><br/></td>
+            </tr>
+
+            <tr>
+                <th scope="row">Примечание:</th>
+                <td></td>
+            </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+                            </div>
+                        </td>
+
+                        <td class="td3_5" align="center">
+                            <div id="div4" valign="top" align="left">
+                                <form action="https://onis.kz/" method="post">
+                                <div class="search-searches">
+                                <input name="searchword" maxlength="20" alt="&nbsp;" class="inputbox-searches" type="text" size="20" value="Поиск по сайту..." onblur="if(this.value=='') this.value='Поиск по сайту...';" onfocus="if(this.value=='Поиск по сайту...') this.value='';">
+                                <input type="submit" value="&nbsp;" class="button-searches" onclick="this.form.searchword.focus();">
+                                </div>
+                                </form>
+                                <div>&nbsp;</div>
+
+                                <a href="https://onis.kz/" class="banners_hrefs">
+                                <div id="banners_rights" style="height:157px">
+                                    <img class="banners_rights_imgs" src="/static/images/bnr2.png"/>
+                                    <span class="banners_rights_texts">Цифровые нотариальные действия</span>
+                                </div>
+                                </a>
+
+                                <div>&nbsp;</div>
+
+                                <a href="https://onis.kz/" class="banners_hrefs">
+                                <div id="banners_rights">
+                                    <img class="banners_rights_imgs" src="/static/images/bnr1.png"/>
+                                    <span class="banners_rights_texts">Поиск нотариуса</span>
+                                </div>
+                                </a>
+                                <div>&nbsp;</div>
+
+                                <a href="https://onis.kz/" class="banners_hrefs">
+                                <div id="banners_rights">
+                                    <img class="banners_rights_imgs" src="/static/images/bnr4.png"/>
+                                    <span class="banners_rights_texts" style="margin-left: 0"><center>Проверка заявки на регистрацию прав на недвижимость</center></span>
+                                </div>
+                                </a>
+                                <div>&nbsp;</div>
+
+                                <a href="https://onis.kz/" class="banners_hrefs">
+                                <div id="banners_rights">
+                                    <img class="banners_rights_imgs" src="/static/images/bnr3.png"/>
+                                    <span class="banners_rights_texts">Рекламный ролик ЕНИС</span>
+                                </div>
+                                </a>
+                                <div>&nbsp;</div>
+                            </div>
+                        </td>
+                      </tr>
+                      <tr valign="top" align="left">
+                        <td colspan="3" class="td3_6"> </td>
+                      </tr>
+                      <tr valign="top" align="left">
+                        <td class="td3_7"> </td>
+                        <td class="td3_8"> </td>
+                        <td class="td3_9"> </td>
+                      </tr>
+                    </table>
+                </div>
+
+                <div>&nbsp;</div>
+
+            </td>
+
+            <td class="td0_3"></td>
+        </tr>
+    </table>
+
+    <table class="tbs4">
+      <tr valign="top" align="center">
+        <td class="td4_1">&nbsp;</td>
+        <td class="td4_2">
+            <table class="tbs4_1">
+              <tr valign="top" align="left">
+                <td class="td4_1_1">
+                <a href="http://egov.kz" class="a4_1" target="_blank">
+                    <div id="div4_1_1">
+                        <img class="imgs4_1" src="/static/images/bnb1.png"/><br/>
+                    </div>
+                </a>
+                </td>
+                <td class="td4_1_1">
+                <a href="http://elicense.kz" class="a4_1" target="_blank">
+                    <div id="div4_1_2">
+                        <img class="imgs4_1" src="/static/images/bnb2.png"/><br/>
+                    </div>
+                </a>
+                </td>
+                <td class="td4_1_1">
+                <a href="http://epay.gov.kz" class="a4_1" target="_blank">
+                    <div id="div4_1_3">
+                        <img class="imgs4_1" src="/static/images/bnb3.png"/><br/>
+                    </div>
+                </a>
+                </td>
+                <td class="td4_1_1">
+                <a href="http://www.adilet.gov.kz/ru" class="a4_1" target="_blank">
+                    <div id="div4_1_4">
+                        <img class="imgs4_2" src="/static/images/bnb4.png"/><br/>
+                    </div>
+                </a>
+                </td>
+                <td class="td4_1_1">
+                <a href="http://mdai.gov.kz/ru" class="a4_1" target="_blank">
+                    <div id="div4_1_5">
+                        <img class="imgs4_2" src="/static/images/bnb5.png"/><br/>
+                    </div>
+                </a>
+                </td>
+              </tr>
+            </table>
+        </td>
+        <td class="td4_3">&nbsp;</td>
+      </tr>
+    </table>
+
+    <table class="tbs5">
+      <tr valign="top" align="center">
+      <td class="td5_0"></td>
+        <td class="td5_1" align="left">
+        <div>&nbsp;</div>
+        <span class="span5_1">&#169; Единая Нотариальная Информационная Система</span><br/>
+        <span class="span5_2">2009&#8212;2026 &#169; АО &#171;НИТ&#187;</span>
+        </td>
+        <td class="td5_2" align="right">
+        <div>&nbsp;</div>
+        <span class="span5_3">Свидетельство о государственной регистрации прав на объект авторского права №1926 30 декабря 2010 г.</span>
+        <div>&nbsp;</div>
+        </td>
+       <td class="td5_3"></td>
+      </tr>
+    </table>
+
+</div>
+</center>
+
+<script>
+  window.addEventListener('load', function() {
+    var dateOfCreated = '2026-06-05T10:25:00';
+    function parseCreatedDate(value) {
+      var normalized = value.trim();
+      var legacyMatch = normalized.match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
+      if (legacyMatch) {
+        return new Date(
+          Number(legacyMatch[3]),
+          Number(legacyMatch[2]) - 1,
+          Number(legacyMatch[1]),
+          Number(legacyMatch[4]),
+          Number(legacyMatch[5]),
+          Number(legacyMatch[6] || 0)
+        );
+      }
+      return new Date(normalized);
+    }
+
+    var parsedDate = parseCreatedDate(dateOfCreated);
+    document.getElementById('dateOfCreated').innerHTML =
+      isNaN(parsedDate.getTime()) ? dateOfCreated : parsedDate.toLocaleString();
+  }, false);
+</script>
+</body>
+</html>
