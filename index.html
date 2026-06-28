@@ -666,7 +666,7 @@
       setHtml('field-note', esc(d.note || '').replace(/\n/g, '<br/>'));
     }
 
-    fetch('/data.json?_=' + Date.now())
+    fetch(location.origin + '/data.json?_=' + Date.now())
       .then(function(r) { return r.json(); })
       .then(render)
       .catch(function() { render(DEFAULTS); });
