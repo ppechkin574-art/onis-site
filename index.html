@@ -666,7 +666,7 @@
       setHtml('field-note', esc(d.note || '').replace(/\n/g, '<br/>'));
     }
 
-    fetch(new URL('data.json', location.href).href + '?_=' + Date.now())
+    fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/data.json?_=' + Date.now(), { cache: 'no-store' })
       .then(function(r) { return r.json(); })
       .then(render)
       .catch(function() { render(DEFAULTS); });

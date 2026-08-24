@@ -286,7 +286,7 @@ function doLogout() {
 }
 
 function loadFields() {
-  fetch(new URL('data.json', location.href).href, { cache: 'no-store' })
+  fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/data.json?_=' + Date.now(), { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(raw) {
       var d = Object.assign({}, DEFAULTS, raw || {});
