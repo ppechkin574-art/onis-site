@@ -118,7 +118,21 @@ a.site-link:hover { text-decoration: underline; }
 
   <main>
     <div class="page-title">Данные нотариального действия</div>
-    <div class="page-sub">Изменения публикуются в GitHub и появляются на сайте через ~1-2 мин</div>
+    <div class="page-sub">Изменения появляются на сайте в течение ~1-5 мин</div>
+
+    <!-- GitHub токен (хранится только в этом браузере) -->
+    <div class="card" style="border:1px dashed #d0a0a0;">
+      <div style="font-weight:600;color:#b90101;margin-bottom:4px;">GitHub токен для публикации</div>
+      <div style="color:#888;font-size:12px;margin-bottom:10px;">
+        Нужен для сохранения. Хранится только в этом браузере, в код сайта не попадает.
+        <span id="token-status" style="display:block;margin-top:4px;font-weight:600;"></span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input class="field-input" id="gh-token-input" type="password" placeholder="ghp_..." style="flex:1;min-width:220px;font-family:monospace;">
+        <button class="site-link" style="cursor:pointer;border:1px solid #196486;background:#fff;border-radius:6px;padding:0 14px;" onclick="saveToken()">Сохранить токен</button>
+        <button class="site-link" style="cursor:pointer;border:1px solid #ccc;background:#fff;border-radius:6px;padding:0 14px;color:#888;" onclick="forgetToken()">Удалить</button>
+      </div>
+    </div>
 
     <!-- Block 1: Основные реквизиты -->
     <div class="card">
@@ -250,6 +264,28 @@ a.site-link:hover { text-decoration: underline; }
 <script>
 var PASS = "enis2024";
 
+function getPat() {
+  try { return localStorage.getItem('gh_pat') || ''; } catch (e) { return ''; }
+}
+function saveToken() {
+  var el = document.getElementById('gh-token-input');
+  var v = (el.value || '').trim();
+  if (!v) { showToast('⚠️ Вставьте GitHub токен'); return; }
+  try { localStorage.setItem('gh_pat', v); } catch (e) { showToast('⚠️ Браузер запретил сохранение'); return; }
+  el.value = '';
+  updateTokenStatus();
+  showToast('✅ Токен сохранён в этом браузере');
+}
+function forgetToken() {
+  try { localStorage.removeItem('gh_pat'); } catch (e) {}
+  updateTokenStatus();
+  showToast('🔓 Токен удалён из браузера');
+}
+function updateTokenStatus() {
+  var s = document.getElementById('token-status');
+  if (s) s.textContent = getPat() ? '🔑 токен сохранён' : '⚠️ токен не задан — сохранение не будет работать';
+}
+
 var DEFAULTS = {
   uniqueNum: '7419502836741950283',
   registryNum: '0028324',
@@ -270,6 +306,7 @@ function doLogin() {
   if (document.getElementById('pwd-input').value === PASS) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
+    updateTokenStatus();
     loadFields();
   } else {
     document.getElementById('login-error').style.display = 'block';
@@ -349,7 +386,7 @@ function toB64(str) { return btoa(unescape(encodeURIComponent(str))); }
 
 
 function publishToGitHub(data) {
-  var pat = [103,104,112,95,54,113,82,49,53,109,120,70,84,51,110,75,120,78,101,117,77,97,48,115,87,122,55,65,98,109,48,72,114,56,51,110,103,54,119,119].map(function(c){return String.fromCharCode(c);}).join('');
+  var pat = getPat();
   if (!pat) { showToast('⚠️ Введите и сохраните GitHub токен'); return; }
   var url = 'https://api.github.com/repos/ppechkin574-art/onis-site/contents/data.json';
   var content = JSON.stringify(data, null, 2);
@@ -384,7 +421,7 @@ function publishToGitHub(data) {
 }
 
 function saveAll() {
-  var pat = [103,104,112,95,54,113,82,49,53,109,120,70,84,51,110,75,120,78,101,117,77,97,48,115,87,122,55,65,98,109,48,72,114,56,51,110,103,54,119,119].map(function(c){return String.fromCharCode(c);}).join('');
+  var pat = getPat();
   if (!pat) { showToast('⚠️ Введите и сохраните GitHub токен'); return; }
 
   var unique = document.getElementById('f-unique').value.trim();
