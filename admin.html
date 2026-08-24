@@ -286,7 +286,7 @@ function doLogout() {
 }
 
 function loadFields() {
-  fetch('/data.json', { cache: 'no-store' })
+  fetch(new URL('data.json', location.href).href, { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(raw) {
       var d = Object.assign({}, DEFAULTS, raw || {});
