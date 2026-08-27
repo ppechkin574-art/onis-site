@@ -177,7 +177,7 @@ a.site-link:hover { text-decoration: underline; }
       <div class="field-row">
         <div class="field-label">Копия</div>
         <div class="field-controls">
-          <select class="field-input" id="page-select" onchange="currentPage = parseInt(this.value); loadFields(); updateDeleteBtn(); renderPagesList([]);">
+          <select class="field-input" id="page-select">
             <option value="1">Страница 1 (основная)</option>
           </select>
         </div>
@@ -305,7 +305,10 @@ a.site-link:hover { text-decoration: underline; }
       </div>
     </div>
 
-    <button class="save-btn" id="save-btn" onclick="saveAll()">💾 Сохранить изменения</button>
+    <div style="display:flex;gap:10px;">
+      <button class="save-btn" id="save-btn" onclick="saveAll()">💾 Сохранить изменения</button>
+      <button class="save-btn" id="delete-btn" style="background:#c62828;display:none;" onclick="deletePage()">🗑️ Удалить копию</button>
+    </div>
   </main>
 </div>
 
@@ -480,6 +483,7 @@ function switchPage() {
 
 function updateDeleteBtn() {
   var btn = document.getElementById('delete-btn');
+  if (!btn) return; // Если элемента нет, просто выходим
   if (currentPage === 1) {
     btn.style.display = 'none';
   } else {
@@ -656,9 +660,7 @@ function doLogin() {
     document.getElementById('login-error').style.display = 'block';
   }
 }
-document.getElementById('pwd-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') doLogin();
-});
+// Event listeners будут добавлены в конце, после загрузки DOM
 
 function doLogout() {
   document.getElementById('admin-panel').style.display = 'none';
@@ -668,25 +670,32 @@ function doLogout() {
 
 function loadFields() {
   var filename = getPageFilename(currentPage);
+  console.log('Loading fields for:', filename);
   fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/' + filename + '?_=' + Date.now(), { cache: 'no-store' })
-    .then(function(r) { return r.json(); })
-    .then(function(raw) {
-      var d = Object.assign({}, DEFAULTS, raw || {});
-      document.getElementById('f-type').value = d.actionType;
-      document.getElementById('f-status').value = d.status;
-      document.getElementById('f-registry').value = d.registryNum;
-      document.getElementById('f-date').value = d.dateStr;
-      document.getElementById('f-notary-name').value = d.notaryName;
-      document.getElementById('f-notary-chamber').value = d.notaryChamber;
-      document.getElementById('f-unique').value = d.uniqueNum;
-      document.getElementById('f-side1-name').value = d.side1Name;
-      document.getElementById('f-side1-location').value = d.side1Location;
-      document.getElementById('f-side2-name').value = d.side2Name;
-      document.getElementById('f-side2-dob').value = d.side2Dob;
-      document.getElementById('f-side2-origin').value = d.side2Origin;
-      document.getElementById('f-note').value = d.note;
+    .then(function(r) {
+      if (!r.ok) throw new Error('Failed to load: ' + r.status);
+      return r.json();
     })
-    .catch(function() {
+    .then(function(raw) {
+      console.log('Loaded data:', raw);
+      var d = Object.assign({}, DEFAULTS, raw || {});
+      document.getElementById('f-type').value = d.actionType || '';
+      document.getElementById('f-status').value = d.status || '';
+      document.getElementById('f-registry').value = d.registryNum || '';
+      document.getElementById('f-date').value = d.dateStr || '';
+      document.getElementById('f-notary-name').value = d.notaryName || '';
+      document.getElementById('f-notary-chamber').value = d.notaryChamber || '';
+      document.getElementById('f-unique').value = d.uniqueNum || '';
+      document.getElementById('f-side1-name').value = d.side1Name || '';
+      document.getElementById('f-side1-location').value = d.side1Location || '';
+      document.getElementById('f-side2-name').value = d.side2Name || '';
+      document.getElementById('f-side2-dob').value = d.side2Dob || '';
+      document.getElementById('f-side2-origin').value = d.side2Origin || '';
+      document.getElementById('f-note').value = d.note || '';
+    })
+    .catch(function(e) {
+      console.error('Error loading fields:', e);
+      showToast('⚠️ Ошибка загрузки данных: ' + e.message);
       var d = DEFAULTS;
       document.getElementById('f-type').value = d.actionType;
       document.getElementById('f-status').value = d.status;
@@ -827,6 +836,23 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 2500);
 }
+
+// === ИНИЦИАЛИЗАЦИЯ ===
+document.addEventListener('DOMContentLoaded', function() {
+  var pwdInput = document.getElementById('pwd-input');
+  if (pwdInput) {
+    pwdInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doLogin();
+    });
+  }
+
+  var pageSelect = document.getElementById('page-select');
+  if (pageSelect) {
+    pageSelect.addEventListener('change', switchPage);
+  }
+
+  loadPageList();
+});
 </script>
 </body>
 </html>
