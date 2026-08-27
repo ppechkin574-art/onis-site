@@ -515,10 +515,12 @@ function createPageCopy() {
   showToast('⏳ Создаю копию ' + newPage + '...');
 
   // Сначала получаем SHA (если файл уже существует)
+  console.log('Creating copy:', filename);
   fetch('https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename, {
     headers: { 'Authorization': 'token ' + pat, 'Accept': 'application/vnd.github.v3+json' }
   })
     .then(function(r) {
+      console.log('File check response:', r.status);
       if (r.ok) return r.json();
       return { sha: null }; // файл не существует
     })
@@ -544,11 +546,15 @@ function createPageCopy() {
       return r;
     })
     .then(function() {
+      console.log('Copy created successfully:', newPage);
       showToast('✅ Копия ' + newPage + ' создана! Откройте enis.pages.dev/?page=' + newPage);
       currentPage = newPage;
       setTimeout(function() { loadPageList(); loadFields(); }, 500);
     })
-    .catch(function(e) { showToast('⚠️ Ошибка: ' + e.message); });
+    .catch(function(e) {
+      console.error('Create copy error:', e);
+      showToast('⚠️ Ошибка: ' + e.message);
+    });
 }
 
 function deletePage() {
