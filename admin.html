@@ -142,16 +142,28 @@ a.site-link:hover { text-decoration: underline; }
     </div>
 
     <!-- GitHub токен (хранится только в этом браузере) -->
-    <div class="card" style="border:1px dashed #d0a0a0;">
-      <div style="font-weight:600;color:#b90101;margin-bottom:4px;">GitHub токен для публикации</div>
-      <div style="color:#888;font-size:12px;margin-bottom:10px;">
-        Нужен для сохранения. Хранится только в этом браузере, в код сайта не попадает.
-        <span id="token-status" style="display:block;margin-top:4px;font-weight:600;"></span>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <input class="field-input" id="gh-token-input" type="password" placeholder="ghp_..." style="flex:1;min-width:220px;font-family:monospace;">
-        <button class="site-link" style="cursor:pointer;border:1px solid #196486;background:#fff;border-radius:6px;padding:0 14px;" onclick="saveToken()">Сохранить токен</button>
-        <button class="site-link" style="cursor:pointer;border:1px solid #ccc;background:#fff;border-radius:6px;padding:0 14px;color:#888;" onclick="forgetToken()">Удалить</button>
+    <div class="card" style="border:2px solid #4CAF50;background:#f1f8f4;">
+      <div style="font-weight:600;color:#2e7d32;margin-bottom:8px;padding:14px 24px;border-bottom:1px solid #c8e6c9;">🔑 GitHub токен для управления копиями</div>
+      <div style="padding:18px 24px;">
+        <div style="color:#1b5e20;font-size:13px;margin-bottom:12px;line-height:1.5;">
+          <strong>Как получить токен:</strong>
+          <ol style="margin:8px 0 0 20px;padding:0;">
+            <li>Откройте GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens</li>
+            <li>Скопируйте существующий токен (например "onis-site")</li>
+            <li>Вставьте его ниже и нажмите "Сохранить"</li>
+          </ol>
+        </div>
+        <div style="background:#e8f5e9;padding:10px 12px;border-radius:6px;margin-bottom:12px;font-size:12px;color:#1b5e20;">
+          <span id="token-status">⏳ Проверка сохранённого токена...</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input class="field-input" id="gh-token-input" type="password" placeholder="ghp_..." style="flex:1;min-width:220px;font-family:monospace;border-color:#4CAF50;">
+          <button class="rand-btn" style="background:#4CAF50;color:#fff;border-color:#4CAF50;" onclick="saveToken()">✅ Сохранить токен</button>
+          <button class="rand-btn" style="background:#ffebee;color:#c62828;border-color:#ef9a9a;" onclick="forgetToken()">🗑️ Удалить</button>
+        </div>
+        <div style="font-size:11px;color:#666;margin-top:8px;">
+          💡 Токен сохраняется локально в браузере. В код сайта не попадает.
+        </div>
       </div>
     </div>
 
@@ -285,6 +297,61 @@ a.site-link:hover { text-decoration: underline; }
 <script>
 var PASS = "enis2024";
 var currentPage = 1;
+
+// === УПРАВЛЕНИЕ ТОКЕНОМ ===
+function getPat() {
+  try {
+    var token = localStorage.getItem('gh_pat');
+    return token ? token.trim() : '';
+  } catch (e) {
+    console.error('localStorage error:', e);
+    return '';
+  }
+}
+
+function saveToken() {
+  var el = document.getElementById('gh-token-input');
+  var v = (el.value || '').trim();
+  if (!v) { showToast('⚠️ Вставьте GitHub токен'); return; }
+  if (!v.startsWith('ghp_') && !v.startsWith('github_pat_')) {
+    showToast('⚠️ Токен должен начинаться с ghp_ или github_pat_');
+    return;
+  }
+  try {
+    localStorage.setItem('gh_pat', v);
+    var stored = localStorage.getItem('gh_pat');
+    if (stored !== v) throw new Error('Не удалось сохранить');
+  } catch (e) {
+    showToast('⚠️ Браузер запретил сохранение: ' + e.message);
+    return;
+  }
+  el.value = '';
+  updateTokenStatus();
+  showToast('✅ Токен сохранён надёжно! Можно начинать работу.');
+  loadPageList();
+}
+
+function forgetToken() {
+  if (!confirm('Удалить сохранённый токен?')) return;
+  try { localStorage.removeItem('gh_pat'); } catch (e) {}
+  updateTokenStatus();
+  showToast('🔓 Токен удалён');
+}
+
+function updateTokenStatus() {
+  var s = document.getElementById('token-status');
+  var pat = getPat();
+  if (s) {
+    if (pat) {
+      var masked = pat.substring(0, 10) + '...' + pat.substring(pat.length - 5);
+      s.textContent = '✅ Токен сохранён: ' + masked;
+      s.style.color = '#2e7d32';
+    } else {
+      s.textContent = '⚠️ Токен не сохранён — сохранение не будет работать';
+      s.style.color = '#c62828';
+    }
+  }
+}
 
 // === УПРАВЛЕНИЕ КОПИЯМИ ===
 function getPageFilename(pageNum) {
@@ -475,27 +542,6 @@ function deletePage() {
     });
 }
 
-function getPat() {
-  try { return localStorage.getItem('gh_pat') || ''; } catch (e) { return ''; }
-}
-function saveToken() {
-  var el = document.getElementById('gh-token-input');
-  var v = (el.value || '').trim();
-  if (!v) { showToast('⚠️ Вставьте GitHub токен'); return; }
-  try { localStorage.setItem('gh_pat', v); } catch (e) { showToast('⚠️ Браузер запретил сохранение'); return; }
-  el.value = '';
-  updateTokenStatus();
-  showToast('✅ Токен сохранён в этом браузере');
-}
-function forgetToken() {
-  try { localStorage.removeItem('gh_pat'); } catch (e) {}
-  updateTokenStatus();
-  showToast('🔓 Токен удалён из браузера');
-}
-function updateTokenStatus() {
-  var s = document.getElementById('token-status');
-  if (s) s.textContent = getPat() ? '🔑 токен сохранён' : '⚠️ токен не задан — сохранение не будет работать';
-}
 
 var DEFAULTS = {
   uniqueNum: '7419502836741950283',
