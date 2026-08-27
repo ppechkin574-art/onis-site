@@ -200,7 +200,7 @@ a.site-link:hover { text-decoration: underline; }
       <div class="field-row">
         <div class="field-label">Дата совершения</div>
         <div class="field-controls">
-          <input class="field-input" id="f-date" type="text" maxlength="19" style="font-family:monospace" placeholder="ДД.ММ.ГГГГ, ЧЧ:ММ:СС">
+          <input class="field-input" id="f-date" type="text" maxlength="19" style="font-family:monospace" placeholder="ДД.ММ.ГГГГ, ЧЧ:ММ:СС" onblur="formatDate()">
           <button class="rand-btn" onclick="randomize('date')">🎲 Рандом</button>
         </div>
         <div class="field-hint">Формат: ДД.ММ.ГГГГ, ЧЧ:ММ:СС</div>
@@ -672,6 +672,24 @@ function loadFields() {
 }
 
 function pad(n, len) { return String(n).padStart(len, '0'); }
+
+function formatDate() {
+  var input = document.getElementById('f-date');
+  var val = input.value.trim();
+  if (!val) return;
+
+  // Проверяем формат ДД.ММ.ГГГГ, ЧЧ:ММ:СС
+  var match = val.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4}),\s*(\d{1,2}):(\d{1,2}):(\d{1,2})$/);
+  if (match) {
+    var day = pad(parseInt(match[1]), 2);
+    var month = pad(parseInt(match[2]), 2);
+    var year = match[3];
+    var hour = pad(parseInt(match[4]), 2);
+    var min = pad(parseInt(match[5]), 2);
+    var sec = pad(parseInt(match[6]), 2);
+    input.value = day + '.' + month + '.' + year + ', ' + hour + ':' + min + ':' + sec;
+  }
+}
 
 function randomize(field) {
   if (field === 'unique') {
