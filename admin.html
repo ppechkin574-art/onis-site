@@ -66,6 +66,7 @@ main { max-width: 760px; margin: 36px auto; padding: 0 24px 60px; }
   resize: vertical; min-width: 250px; box-sizing: border-box;
 }
 #f-date { font-family: 'Courier New', monospace !important; }
+#page-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%23333' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
 .field-input:focus { border-color: #b90101; }
 .rand-btn {
   background: #fff3f3; color: #b90101; border: 1.5px solid #f5c0c0;
@@ -166,6 +167,19 @@ a.site-link:hover { text-decoration: underline; }
         </div>
         <div style="font-size:11px;color:#666;margin-top:8px;">
           💡 Токен сохраняется локально в браузере. В код сайта не попадает.
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Selector -->
+    <div class="card">
+      <div class="card-header">Выбор копии страницы</div>
+      <div class="field-row">
+        <div class="field-label">Копия</div>
+        <div class="field-controls">
+          <select class="field-input" id="page-select" onchange="currentPage = parseInt(this.value); loadFields(); updateDeleteBtn(); renderPagesList([]);">
+            <option value="1">Страница 1 (основная)</option>
+          </select>
         </div>
       </div>
     </div>
