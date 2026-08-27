@@ -35,8 +35,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .login-error { color: #f44336; font-size: 14px; margin-top: 12px; display: none; font-weight: 600; }
 
 /* ADMIN PANEL */
-#admin-panel { display: none; }
-#admin-panel { display: flex; flex-direction: column; min-height: 100vh; }
+#admin-panel { display: none; flex-direction: column; min-height: 100vh; }
 
 /* Header */
 header {
@@ -170,7 +169,7 @@ main { flex: 1; padding: 36px 48px; overflow-y: auto; }
         <div class="sidebar-tabs" id="page-tabs">
           <div class="tab active" onclick="switchToPage(1)">Страница 1</div>
         </div>
-        <button class="create-btn" onclick="showCreateCopyDialog()">➕ Новая копия</button>
+        <button class="create-btn" id="create-btn" onclick="showCreateCopyDialog()">➕ Новая копия</button>
       </div>
 
       <div class="sidebar-section">
@@ -184,7 +183,7 @@ main { flex: 1; padding: 36px 48px; overflow-y: auto; }
     <!-- MAIN CONTENT -->
     <main>
       <div class="page-title">Данные нотариального действия</div>
-      <div class="page-sub">Изменения появляются на сайте в течение 1-5 минут</div>
+      <div class="page-sub">Страница читает данные с GitHub — обновится сразу после сохранения (иногда до 1–2 минут). Ссылка: <a id="page-link" href="https://eniskz.pages.dev/" target="_blank" rel="noopener" style="color:#667eea;font-weight:600;">https://eniskz.pages.dev/</a></div>
 
       <div class="card">
         <div class="card-header">Основные сведения</div>
@@ -269,20 +268,63 @@ main { flex: 1; padding: 36px 48px; overflow-y: auto; }
   <div class="toast" id="toast"></div>
 </div>
 
-<!-- SCRIPT (весь JavaScript из старой версии) -->
+<!-- SCRIPT -->
 <script>
 const PASS = 'enis2024';
+const REPO = 'ppechkin574-art/onis-site';
+const API = 'https://api.github.com/repos/' + REPO + '/contents/';
+const RAW = 'https://raw.githubusercontent.com/' + REPO + '/main/';
+const SITE = 'https://eniskz.pages.dev/';
 const DEFAULTS = {uniqueNum:'',registryNum:'',dateStr:'',actionType:'',status:'',notaryName:'',notaryChamber:'',side1Name:'',side1Location:'',side2Name:'',side2Dob:'',side2Origin:'',note:''};
+// ключ данных → id поля формы
+const FIELDS = {
+  uniqueNum:'f-unique', registryNum:'f-registry', dateStr:'f-date', actionType:'f-type', status:'f-status',
+  notaryName:'f-notary-name', notaryChamber:'f-notary-chamber',
+  side1Name:'f-side1-name', side1Location:'f-side1-location',
+  side2Name:'f-side2-name', side2Dob:'f-side2-dob', side2Origin:'f-side2-origin', note:'f-note'
+};
+
 var currentPage = 1;
+var pages = [1];          // список существующих страниц (номера)
+var loadedData = null;    // снимок загруженных данных — для проверки несохранённых правок
+var busy = false;
 
 function getPat() { return localStorage.getItem('github_pat'); }
 function setPat(p) { localStorage.setItem('github_pat', p); }
 
+function authHeaders(extra) {
+  var h = Object.assign({'Accept': 'application/vnd.github+json'}, extra || {});
+  var pat = getPat();
+  if (pat) h['Authorization'] = 'token ' + pat;
+  return h;
+}
+
+function getPageFilename(p) { return p === 1 ? 'data.json' : 'data-' + p + '.json'; }
+function pageUrl(p) { return SITE + (p === 1 ? '' : '?page=' + p); }
+
+function collectData() {
+  var d = {};
+  Object.keys(FIELDS).forEach(function(k) { d[k] = document.getElementById(FIELDS[k]).value.trim(); });
+  return d;
+}
+function fillData(data) {
+  var d = Object.assign({}, DEFAULTS, data || {});
+  Object.keys(FIELDS).forEach(function(k) { document.getElementById(FIELDS[k]).value = d[k] || ''; });
+  loadedData = JSON.stringify(collectData());
+}
+function isDirty() { return loadedData !== null && JSON.stringify(collectData()) !== loadedData; }
+
+/* ---------- вход / выход ---------- */
 function doLogin() {
   if (document.getElementById('pwd-input').value === PASS) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'flex';
+    document.getElementById('login-error').style.display = 'none';
     updateTokenStatus();
+    currentPage = 1;
+    renderPageTabs();
+    updateDeleteBtn();
+    updatePageLink();
     loadPageList();
     loadFields();
   } else {
@@ -291,23 +333,21 @@ function doLogin() {
 }
 
 function doLogout() {
+  if (isDirty() && !confirm('Есть несохранённые изменения. Выйти без сохранения?')) return;
   document.getElementById('admin-panel').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('pwd-input').value = '';
+  loadedData = null;
 }
 
-function updateTokenStatus() {
+/* ---------- токен ---------- */
+function updateTokenStatus(msg, color) {
   var pat = getPat();
   var s = document.getElementById('token-status');
-  var input = document.getElementById('token-input');
-  input.value = pat || '';
-  if (pat) {
-    s.textContent = '✅ Токен сохранён';
-    s.style.color = '#4CAF50';
-  } else {
-    s.textContent = '⚠️ Токен не установлен';
-    s.style.color = '#ff9800';
-  }
+  document.getElementById('token-input').value = pat || '';
+  if (msg) { s.textContent = msg; s.style.color = color; return; }
+  if (pat) { s.textContent = '✅ Токен сохранён'; s.style.color = '#4CAF50'; }
+  else { s.textContent = '⚠️ Токен не установлен'; s.style.color = '#ff9800'; }
 }
 
 function saveToken() {
@@ -315,32 +355,56 @@ function saveToken() {
   if (!token) { showToast('⚠️ Введите токен'); return; }
   if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) { showToast('⚠️ Неверный формат токена'); return; }
   setPat(token);
-  updateTokenStatus();
-  showToast('✅ Токен сохранён');
+  updateTokenStatus('⏳ Проверяю токен…', '#fff');
+  // проверяем, что токен реально даёт доступ к репозиторию
+  fetch(API, {headers: authHeaders(), cache: 'no-store'})
+    .then(function(r) {
+      if (r.ok) { updateTokenStatus('✅ Токен сохранён и проверен', '#4CAF50'); showToast('✅ Токен сохранён'); loadPageList(); }
+      else if (r.status === 401) { updateTokenStatus('❌ GitHub не принял токен (неверный или просрочен)', '#ffcdd2'); showToast('⚠️ Токен не принят GitHub'); }
+      else { updateTokenStatus('⚠️ Токен сохранён, но GitHub ответил ' + r.status, '#ffe082'); showToast('⚠️ GitHub ответил ' + r.status); }
+    })
+    .catch(function() { updateTokenStatus('⚠️ Токен сохранён (проверить не удалось — нет сети?)', '#ffe082'); });
 }
 
-function getPageFilename(p) { return p === 1 ? 'data.json' : 'data-' + p + '.json'; }
-
+/* ---------- список страниц ---------- */
 function loadPageList() {
-  var checks = [];
-  for (var i = 1; i <= 20; i++) checks.push(i);
-  Promise.all(checks.map(function(num) {
-    if (num === 1) return Promise.resolve(true);
-    return fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/data-' + num + '.json?_=' + Date.now(), {cache: 'no-store'})
-      .then(function(r) { return r.ok; }).catch(function() { return false; });
-  })).then(function(results) {
-    var pages = [];
-    results.forEach(function(exists, idx) { if (exists) pages.push(idx + 1); });
-    renderPageTabs(pages);
-  });
+  // один запрос к GitHub API — список файлов репозитория (актуален сразу после сохранения)
+  return fetch(API, {headers: authHeaders(), cache: 'no-store'})
+    .then(function(r) { if (!r.ok) throw new Error('list ' + r.status); return r.json(); })
+    .then(function(files) {
+      var found = [];
+      files.forEach(function(f) {
+        var m = /^data(?:-(\d+))?\.json$/.exec(f.name);
+        if (!m) return;
+        var n = m[1] ? parseInt(m[1], 10) : 1;
+        if (n >= 1 && found.indexOf(n) === -1) found.push(n);
+      });
+      return found;
+    })
+    .catch(function() {
+      // запасной путь без API: проверяем data-2…data-20 напрямую
+      var checks = [];
+      for (var i = 2; i <= 20; i++) checks.push(i);
+      return Promise.all(checks.map(function(num) {
+        return fetch(RAW + 'data-' + num + '.json?_=' + Date.now(), {cache: 'no-store'})
+          .then(function(r) { return r.ok ? num : null; }).catch(function() { return null; });
+      })).then(function(res) { return [1].concat(res.filter(function(n) { return n !== null; })); });
+    })
+    .then(function(found) {
+      if (found.indexOf(1) === -1) found.push(1);
+      if (found.indexOf(currentPage) === -1) found.push(currentPage);
+      pages = found.sort(function(a, b) { return a - b; });
+      renderPageTabs();
+    });
 }
 
-function renderPageTabs(pages) {
+function renderPageTabs() {
   var tabs = document.getElementById('page-tabs');
   tabs.innerHTML = '';
   pages.forEach(function(p) {
     var tab = document.createElement('div');
     tab.className = 'tab' + (p === currentPage ? ' active' : '');
+    tab.dataset.page = p;
     tab.textContent = p === 1 ? '📄 Основная' : '📋 Копия ' + p;
     tab.onclick = function() { switchToPage(p); };
     tabs.appendChild(tab);
@@ -348,140 +412,172 @@ function renderPageTabs(pages) {
 }
 
 function switchToPage(p) {
+  if (p === currentPage) return;
+  if (isDirty() && !confirm('Есть несохранённые изменения. Перейти без сохранения?')) return;
   currentPage = p;
-  loadFields();
-  renderPageTabs(Array.from({length: 20}, (_, i) => i + 1).filter((i) => {
-    var btn = document.querySelector('.tab[data-page="' + i + '"]');
-    return btn !== null || i === 1;
-  }));
+  renderPageTabs();
   updateDeleteBtn();
-}
-
-function loadFields() {
-  var filename = getPageFilename(currentPage);
-  console.log('Loading:', filename);
-  fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/' + filename + '?_=' + Date.now(), {cache: 'no-store'})
-    .then(function(r) { if (!r.ok) throw new Error('Load failed: ' + r.status); return r.json(); })
-    .then(function(data) {
-      var d = Object.assign({}, DEFAULTS, data || {});
-      document.getElementById('f-unique').value = d.uniqueNum || '';
-      document.getElementById('f-registry').value = d.registryNum || '';
-      document.getElementById('f-date').value = d.dateStr || '';
-      document.getElementById('f-type').value = d.actionType || '';
-      document.getElementById('f-status').value = d.status || '';
-      document.getElementById('f-notary-name').value = d.notaryName || '';
-      document.getElementById('f-notary-chamber').value = d.notaryChamber || '';
-      document.getElementById('f-side1-name').value = d.side1Name || '';
-      document.getElementById('f-side1-location').value = d.side1Location || '';
-      document.getElementById('f-side2-name').value = d.side2Name || '';
-      document.getElementById('f-side2-dob').value = d.side2Dob || '';
-      document.getElementById('f-side2-origin').value = d.side2Origin || '';
-      document.getElementById('f-note').value = d.note || '';
-    })
-    .catch(function(e) { console.error(e); showToast('⚠️ Ошибка загрузки'); });
+  updatePageLink();
+  loadFields();
 }
 
 function updateDeleteBtn() {
   var btn = document.getElementById('delete-btn');
-  btn.style.display = currentPage === 1 ? 'none' : 'block';
+  if (btn) btn.style.display = currentPage === 1 ? 'none' : 'block';
+}
+
+function updatePageLink() {
+  var a = document.getElementById('page-link');
+  if (a) { a.href = pageUrl(currentPage); a.textContent = pageUrl(currentPage); }
+}
+
+/* ---------- загрузка данных страницы ---------- */
+function loadFields() {
+  var filename = getPageFilename(currentPage);
+  var req = getPat()
+    ? fetch(API + filename, {headers: authHeaders({'Accept': 'application/vnd.github.raw+json'}), cache: 'no-store'})
+    : fetch(RAW + filename + '?_=' + Date.now(), {cache: 'no-store'});
+  loadedData = null;
+  return req
+    .then(function(r) { if (!r.ok) throw new Error('Load failed: ' + r.status); return r.json(); })
+    .then(function(data) { fillData(data); })
+    .catch(function(e) { console.error(e); fillData({}); showToast('⚠️ Не удалось загрузить ' + filename); });
+}
+
+/* ---------- сохранение / копии / удаление ---------- */
+function apiError(status, body) {
+  var msg = (body && body.message) || '';
+  if (status === 401) return 'Токен неверный или просрочен — сохраните новый токен';
+  if (status === 403) return /rate limit/i.test(msg) ? 'Лимит запросов GitHub — подождите минуту' : 'У токена нет прав на запись (нужно Contents: Read and write)';
+  if (status === 404) return 'Репозиторий недоступен для токена (проверьте права токена)';
+  if (status === 409) return 'Конфликт версий — нажмите «Сохранить» ещё раз';
+  if (status === 422) return 'GitHub отклонил данные: ' + msg;
+  return 'GitHub ' + status + (msg ? ': ' + msg : '');
+}
+
+function setBusy(on, label) {
+  busy = on;
+  var save = document.getElementById('save-btn');
+  var del = document.getElementById('delete-btn');
+  var create = document.getElementById('create-btn');
+  [save, del, create].forEach(function(b) { if (b) b.disabled = on; });
+  save.textContent = on ? (label || '⏳ Сохранение…') : '💾 Сохранить изменения';
+}
+
+function getSha(url) {
+  return fetch(url, {headers: authHeaders(), cache: 'no-store'}).then(function(r) {
+    if (r.status === 404) return null;
+    if (r.ok) return r.json().then(function(f) { return f.sha; });
+    return r.json().catch(function() { return {}; }).then(function(b) { throw new Error(apiError(r.status, b)); });
+  });
 }
 
 function showCreateCopyDialog() {
+  if (busy) return;
   if (!getPat()) { showToast('⚠️ Сначала сохраните GitHub токен'); return; }
-  if (!confirm('Создать новую копию текущей страницы?')) return;
-
-  var data = {
-    uniqueNum: document.getElementById('f-unique').value.trim(),
-    registryNum: document.getElementById('f-registry').value.trim(),
-    dateStr: document.getElementById('f-date').value.trim(),
-    actionType: document.getElementById('f-type').value.trim(),
-    status: document.getElementById('f-status').value.trim(),
-    notaryName: document.getElementById('f-notary-name').value.trim(),
-    notaryChamber: document.getElementById('f-notary-chamber').value.trim(),
-    side1Name: document.getElementById('f-side1-name').value.trim(),
-    side1Location: document.getElementById('f-side1-location').value.trim(),
-    side2Name: document.getElementById('f-side2-name').value.trim(),
-    side2Dob: document.getElementById('f-side2-dob').value.trim(),
-    side2Origin: document.getElementById('f-side2-origin').value.trim(),
-    note: document.getElementById('f-note').value.trim()
-  };
-
-  publishToGitHub(data, true);
+  var next = Math.max.apply(null, pages) + 1;   // всегда свободный номер — существующие копии не перезаписываем
+  if (!confirm('Создать копию ' + next + ' с данными текущей страницы?')) return;
+  publishToGitHub(collectData(), next, true);
 }
 
 function saveAll() {
-  if (!getPat()) { showToast('⚠️ Сохраните GitHub токен'); return; }
-  var data = {
-    uniqueNum: document.getElementById('f-unique').value.trim(),
-    registryNum: document.getElementById('f-registry').value.trim(),
-    dateStr: document.getElementById('f-date').value.trim(),
-    actionType: document.getElementById('f-type').value.trim(),
-    status: document.getElementById('f-status').value.trim(),
-    notaryName: document.getElementById('f-notary-name').value.trim(),
-    notaryChamber: document.getElementById('f-notary-chamber').value.trim(),
-    side1Name: document.getElementById('f-side1-name').value.trim(),
-    side1Location: document.getElementById('f-side1-location').value.trim(),
-    side2Name: document.getElementById('f-side2-name').value.trim(),
-    side2Dob: document.getElementById('f-side2-dob').value.trim(),
-    side2Origin: document.getElementById('f-side2-origin').value.trim(),
-    note: document.getElementById('f-note').value.trim()
-  };
-  publishToGitHub(data, false);
+  if (busy) return;
+  if (!getPat()) { showToast('⚠️ Сначала сохраните GitHub токен'); return; }
+  publishToGitHub(collectData(), currentPage, false);
 }
 
-function publishToGitHub(data, isNewCopy) {
-  var pat = getPat();
-  var filename = isNewCopy ? 'data-' + (currentPage + 1) + '.json' : getPageFilename(currentPage);
-  var url = 'https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename;
-  var btn = document.getElementById('save-btn');
+function publishToGitHub(data, pageNum, isNewCopy) {
+  var filename = getPageFilename(pageNum);
+  var url = API + filename;
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2) + '\n')));
+  var message = isNewCopy ? 'Create page copy ' + pageNum + ' via admin' : 'Update ' + filename + ' via admin';
 
-  btn.disabled = true;
-  btn.textContent = '⏳ Сохранение...';
+  setBusy(true, isNewCopy ? '⏳ Создаю копию…' : '⏳ Сохранение…');
 
-  fetch(url, {headers: {'Authorization': 'token ' + pat}})
-    .then(function(r) { if (r.ok) return r.json(); return {sha: null}; })
-    .then(function(file) {
-      var body = {message: 'Update via admin', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))};
-      if (file.sha) body.sha = file.sha;
-      return fetch(url, {method: 'PUT', headers: {'Authorization': 'token ' + pat, 'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+  function put(sha) {
+    var body = {message: message, content: content};
+    if (sha) body.sha = sha;
+    return fetch(url, {method: 'PUT', headers: authHeaders({'Content-Type': 'application/json'}), body: JSON.stringify(body)});
+  }
+
+  getSha(url)
+    .then(put)
+    .then(function(r) { return r.status === 409 ? getSha(url).then(put) : r; })   // устаревший sha — берём свежий и повторяем
+    .then(function(r) {
+      if (r.ok) return r.json();
+      return r.json().catch(function() { return {}; }).then(function(b) { throw new Error(apiError(r.status, b)); });
     })
-    .then(function(r) { if (!r.ok) throw new Error('GitHub API error'); return r.json(); })
     .then(function() {
-      showToast('✅ Сохранено успешно!');
-      if (isNewCopy) { currentPage++; setTimeout(function() { loadPageList(); loadFields(); }, 1000); }
+      loadedData = JSON.stringify(data);
+      if (isNewCopy) {
+        if (pages.indexOf(pageNum) === -1) pages.push(pageNum);
+        pages.sort(function(a, b) { return a - b; });
+        currentPage = pageNum;
+        renderPageTabs();
+        updateDeleteBtn();
+        updatePageLink();
+        showToast('✅ Копия ' + pageNum + ' создана: ' + pageUrl(pageNum));
+      } else {
+        showToast('✅ Сохранено — ' + pageUrl(pageNum));
+      }
+      setTimeout(loadPageList, 1500);
     })
     .catch(function(e) { showToast('⚠️ Ошибка: ' + e.message); })
-    .finally(function() { btn.disabled = false; btn.textContent = '💾 Сохранить'; });
+    .finally(function() { setBusy(false); });
 }
 
 function deletePage() {
-  if (currentPage === 1) { showToast('⚠️ Нельзя удалить основную копию'); return; }
-  if (!confirm('Удалить копию ' + currentPage + '?')) return;
+  if (busy) return;
+  if (currentPage === 1) { showToast('⚠️ Нельзя удалить основную страницу'); return; }
+  if (!getPat()) { showToast('⚠️ Сначала сохраните GitHub токен'); return; }
+  var pageNum = currentPage;
+  if (!confirm('Удалить копию ' + pageNum + '? Это действие нельзя отменить.')) return;
 
-  var pat = getPat();
-  var filename = 'data-' + currentPage + '.json';
-  var url = 'https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename;
-
-  fetch(url, {headers: {'Authorization': 'token ' + pat}})
-    .then(function(r) { return r.json(); })
-    .then(function(file) {
-      return fetch(url, {method: 'DELETE', headers: {'Authorization': 'token ' + pat, 'Content-Type': 'application/json'}, body: JSON.stringify({message: 'Delete copy', sha: file.sha})});
+  var url = API + getPageFilename(pageNum);
+  setBusy(true, '⏳ Удаление…');
+  getSha(url)
+    .then(function(sha) {
+      if (!sha) return {ok: true, json: function() { return {}; }};   // файла уже нет
+      return fetch(url, {method: 'DELETE', headers: authHeaders({'Content-Type': 'application/json'}),
+        body: JSON.stringify({message: 'Delete page copy ' + pageNum + ' via admin', sha: sha})});
     })
-    .then(function(r) { if (!r.ok) throw new Error('Delete failed'); return r.json(); })
-    .then(function() { showToast('✅ Копия удалена'); currentPage = 1; loadPageList(); loadFields(); })
-    .catch(function(e) { showToast('⚠️ Ошибка удаления'); });
+    .then(function(r) {
+      if (r.ok) return r.json();
+      return r.json().catch(function() { return {}; }).then(function(b) { throw new Error(apiError(r.status, b)); });
+    })
+    .then(function() {
+      pages = pages.filter(function(p) { return p !== pageNum; });
+      currentPage = 1;
+      loadedData = null;
+      renderPageTabs();
+      updateDeleteBtn();
+      updatePageLink();
+      loadFields();
+      showToast('✅ Копия ' + pageNum + ' удалена');
+      setTimeout(loadPageList, 1500);
+    })
+    .catch(function(e) { showToast('⚠️ Ошибка удаления: ' + e.message); })
+    .finally(function() { setBusy(false); });
 }
 
+/* ---------- служебное ---------- */
+var toastTimer = null;
 function showToast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(function() { t.classList.remove('show'); }, 3000);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 4000);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
   var pwdInput = document.getElementById('pwd-input');
   if (pwdInput) pwdInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+  var tokenInput = document.getElementById('token-input');
+  if (tokenInput) tokenInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') saveToken(); });
+  window.addEventListener('beforeunload', function(e) {
+    if (isDirty()) { e.preventDefault(); e.returnValue = ''; }
+  });
 });
 </script>
 </body>
