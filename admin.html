@@ -725,10 +725,15 @@ function publishToGitHub(data) {
   btn.disabled = true;
   btn.textContent = 'Публикация...';
   console.log('GitHub API URL:', url);
+  console.log('Token:', pat ? '***' + pat.slice(-10) : 'NONE');
   fetch(url, {
     headers: { 'Authorization': 'token ' + pat, 'Accept': 'application/vnd.github.v3+json' }
   })
-    .then(function(r) { console.log('GET response:', r.status); if (!r.ok) throw new Error('GET failed: ' + r.status); return r.json(); })
+    .then(function(r) {
+      console.log('GET response:', r.status, r.statusText);
+      if (!r.ok) return r.json().then(function(e) { throw new Error('GitHub: ' + (e.message || 'Status ' + r.status)); });
+      return r.json();
+    })
     .then(function(f) {
       return fetch(url, {
         method: 'PUT',
