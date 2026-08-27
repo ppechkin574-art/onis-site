@@ -507,7 +507,7 @@ function createPageCopy() {
   // Проверяем валидность текущих данных
   if (!/^\d{19}$/.test(currentData.uniqueNum)) { showToast('⚠️ Сначала заполните правильно Уникальный номер'); return; }
   if (!/^0\d{6}$/.test(currentData.registryNum)) { showToast('⚠️ Сначала заполните правильно Реестровый номер'); return; }
-  if (!/^\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}:\d{2}$/.test(currentData.dateStr)) { showToast('⚠️ Сначала заполните правильно Дату'); return; }
+  // Дата может быть любым форматом — без жёстких ограничений
 
   var filename = 'data-' + newPage + '.json';
   var content = JSON.stringify(currentData, null, 2);
@@ -761,7 +761,7 @@ function saveAll() {
 
   if (!/^\d{19}$/.test(unique)) { showToast('⚠️ Уникальный номер: ровно 19 цифр'); return; }
   if (!/^0\d{6}$/.test(registry)) { showToast('⚠️ Реестровый номер: 0 + 6 цифр'); return; }
-  if (!/^\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}:\d{2}$/.test(date)) { showToast('⚠️ Дата: формат ДД.ММ.ГГГГ, ЧЧ:ММ:СС'); return; }
+  // Дата может быть любым форматом — без жёстких ограничений
 
   var data = {
     uniqueNum: unique,
