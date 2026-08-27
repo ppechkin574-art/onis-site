@@ -121,6 +121,26 @@ a.site-link:hover { text-decoration: underline; }
     <div class="page-title">Данные нотариального действия</div>
     <div class="page-sub">Изменения появляются на сайте в течение ~1-5 мин</div>
 
+    <!-- Управление копиями страниц -->
+    <div class="card" style="border:1px solid #e0d7f1;background:#fafbfd;">
+      <div style="font-weight:600;color:#444;margin-bottom:8px;padding:18px 24px;border-bottom:1px solid #f0f0f0;">📋 Копии страниц</div>
+      <div style="padding:18px 24px;">
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:8px;">Выбрать копию для редактирования:</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <select id="page-select" style="flex:1;min-width:180px;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" onchange="switchPage()">
+              <option value="">— Загрузка списка —</option>
+            </select>
+            <button class="rand-btn" style="background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;" onclick="createPageCopy()">➕ Создать копию</button>
+            <button class="rand-btn" style="background:#ffebee;color:#c62828;border-color:#ef9a9a;" id="delete-btn" onclick="deletePage()" style="display:none;">🗑️ Удалить</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#999;">
+          💡 При создании новой копии скопируются все данные текущей страницы. На сайте копии доступны через параметр <code style="background:#f5f5f5;padding:2px 6px;border-radius:4px;">?page=N</code>
+        </div>
+      </div>
+    </div>
+
     <!-- GitHub токен (хранится только в этом браузере) -->
     <div class="card" style="border:1px dashed #d0a0a0;">
       <div style="font-weight:600;color:#b90101;margin-bottom:4px;">GitHub токен для публикации</div>
@@ -264,6 +284,196 @@ a.site-link:hover { text-decoration: underline; }
 
 <script>
 var PASS = "enis2024";
+var currentPage = 1;
+
+// === УПРАВЛЕНИЕ КОПИЯМИ ===
+function getPageFilename(pageNum) {
+  return pageNum === 1 ? 'data.json' : 'data-' + pageNum + '.json';
+}
+
+function loadPageList() {
+  var select = document.getElementById('page-select');
+  select.innerHTML = '<option>Загрузка...</option>';
+
+  // Проверяем наличие файлов через GitHub API
+  var filesToCheck = [];
+  for (var i = 1; i <= 20; i++) {
+    filesToCheck.push(i);
+  }
+
+  var existingPages = [1]; // data.json всегда существует
+
+  Promise.all(filesToCheck.map(function(num) {
+    if (num === 1) return Promise.resolve(true);
+    var filename = 'data-' + num + '.json';
+    return fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/' + filename + '?_=' + Date.now(), { cache: 'no-store' })
+      .then(function(r) { return r.ok; })
+      .catch(function() { return false; });
+  })).then(function(results) {
+    var pages = [];
+    results.forEach(function(exists, idx) {
+      if (exists) pages.push(idx + 1);
+    });
+
+    select.innerHTML = '';
+    pages.forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p;
+      opt.textContent = '📄 Копия ' + p + (p === 1 ? ' (основная)' : '');
+      select.appendChild(opt);
+    });
+
+    if (pages.length > 0) {
+      select.value = currentPage;
+    }
+  });
+}
+
+function switchPage() {
+  var newPage = parseInt(document.getElementById('page-select').value);
+  if (isNaN(newPage)) return;
+  currentPage = newPage;
+  loadFields();
+  updateDeleteBtn();
+}
+
+function updateDeleteBtn() {
+  var btn = document.getElementById('delete-btn');
+  if (currentPage === 1) {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = 'inline-block';
+  }
+}
+
+function createPageCopy() {
+  var pat = getPat();
+  if (!pat) { showToast('⚠️ Введите и сохраните GitHub токен'); return; }
+
+  // Получаем текущие данные
+  var currentData = {
+    uniqueNum: document.getElementById('f-unique').value.trim(),
+    registryNum: document.getElementById('f-registry').value.trim(),
+    dateStr: document.getElementById('f-date').value.trim(),
+    actionType: document.getElementById('f-type').value.trim(),
+    status: document.getElementById('f-status').value.trim(),
+    notaryName: document.getElementById('f-notary-name').value.trim(),
+    notaryChamber: document.getElementById('f-notary-chamber').value.trim(),
+    side1Name: document.getElementById('f-side1-name').value.trim(),
+    side1Location: document.getElementById('f-side1-location').value.trim(),
+    side2Name: document.getElementById('f-side2-name').value.trim(),
+    side2Dob: document.getElementById('f-side2-dob').value.trim(),
+    side2Origin: document.getElementById('f-side2-origin').value.trim(),
+    note: document.getElementById('f-note').value.trim()
+  };
+
+  // Находим следующий номер страницы
+  var select = document.getElementById('page-select');
+  var maxPage = 0;
+  for (var i = 0; i < select.options.length; i++) {
+    var val = parseInt(select.options[i].value);
+    if (val > maxPage) maxPage = val;
+  }
+  var newPage = maxPage + 1;
+
+  // Проверяем валидность текущих данных
+  if (!/^\d{19}$/.test(currentData.uniqueNum)) { showToast('⚠️ Сначала заполните правильно Уникальный номер'); return; }
+  if (!/^0\d{6}$/.test(currentData.registryNum)) { showToast('⚠️ Сначала заполните правильно Реестровый номер'); return; }
+  if (!/^\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}:\d{2}$/.test(currentData.dateStr)) { showToast('⚠️ Сначала заполните правильно Дату'); return; }
+
+  var filename = 'data-' + newPage + '.json';
+  var content = JSON.stringify(currentData, null, 2);
+
+  var btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Создание...';
+
+  // Сначала получаем SHA (если файл уже существует)
+  fetch('https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename, {
+    headers: { 'Authorization': 'token ' + pat, 'Accept': 'application/vnd.github.v3+json' }
+  })
+    .then(function(r) {
+      if (r.ok) return r.json();
+      return { sha: null }; // файл не существует
+    })
+    .then(function(f) {
+      var body = {
+        message: 'Create page copy ' + newPage + ' via admin',
+        content: toB64(content)
+      };
+      if (f.sha) body.sha = f.sha;
+
+      return fetch('https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename, {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'token ' + pat,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+    })
+    .then(function(r) {
+      if (!r.ok) return r.json().then(function(e) { throw new Error(e.message); });
+      return r;
+    })
+    .then(function() {
+      showToast('✅ Копия ' + newPage + ' создана (обновление ~1-2 мин)');
+      setTimeout(loadPageList, 500);
+    })
+    .catch(function(e) { showToast('⚠️ Ошибка: ' + e.message); })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = '➕ Создать копию';
+    });
+}
+
+function deletePage() {
+  if (currentPage === 1) {
+    showToast('⚠️ Основную копию удалить нельзя');
+    return;
+  }
+
+  if (!confirm('Вы уверены? Удалить копию ' + currentPage + '?')) return;
+
+  var pat = getPat();
+  if (!pat) { showToast('⚠️ Введите и сохраните GitHub токен'); return; }
+
+  var filename = 'data-' + currentPage + '.json';
+  var btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Удаление...';
+
+  fetch('https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename, {
+    headers: { 'Authorization': 'token ' + pat, 'Accept': 'application/vnd.github.v3+json' }
+  })
+    .then(function(r) { if (!r.ok) throw new Error('GET failed: ' + r.status); return r.json(); })
+    .then(function(f) {
+      return fetch('https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'token ' + pat,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: 'Delete page copy ' + currentPage + ' via admin', sha: f.sha })
+      });
+    })
+    .then(function(r) {
+      if (!r.ok) return r.json().then(function(e) { throw new Error(e.message); });
+      return r;
+    })
+    .then(function() {
+      showToast('✅ Копия удалена');
+      currentPage = 1;
+      setTimeout(loadPageList, 500);
+    })
+    .catch(function(e) { showToast('⚠️ Ошибка: ' + e.message); })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = '🗑️ Удалить';
+    });
+}
 
 function getPat() {
   try { return localStorage.getItem('gh_pat') || ''; } catch (e) { return ''; }
@@ -308,7 +518,9 @@ function doLogin() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
     updateTokenStatus();
+    loadPageList();
     loadFields();
+    updateDeleteBtn();
   } else {
     document.getElementById('login-error').style.display = 'block';
   }
@@ -324,7 +536,8 @@ function doLogout() {
 }
 
 function loadFields() {
-  fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/data.json?_=' + Date.now(), { cache: 'no-store' })
+  var filename = getPageFilename(currentPage);
+  fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/' + filename + '?_=' + Date.now(), { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(raw) {
       var d = Object.assign({}, DEFAULTS, raw || {});
@@ -389,7 +602,8 @@ function toB64(str) { return btoa(unescape(encodeURIComponent(str))); }
 function publishToGitHub(data) {
   var pat = getPat();
   if (!pat) { showToast('⚠️ Введите и сохраните GitHub токен'); return; }
-  var url = 'https://api.github.com/repos/ppechkin574-art/onis-site/contents/data.json';
+  var filename = getPageFilename(currentPage);
+  var url = 'https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename;
   var content = JSON.stringify(data, null, 2);
   var btn = document.getElementById('save-btn');
   btn.disabled = true;
@@ -413,7 +627,7 @@ function publishToGitHub(data) {
       if (!r.ok) return r.json().then(function(e) { throw new Error(e.message); });
       return r;
     })
-    .then(function() { showToast('✅ Опубликовано (обновление ~1-2 мин)'); })
+    .then(function() { showToast('✅ Копия ' + currentPage + ' опубликована (обновление ~1-2 мин)'); })
     .catch(function(e) { showToast('⚠️ Ошибка: ' + e.message); })
     .finally(function() {
       btn.disabled = false;

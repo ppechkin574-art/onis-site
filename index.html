@@ -641,6 +641,17 @@
     function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
     function setHtml(id, val) { var el = document.getElementById(id); if (el) el.innerHTML = val; }
 
+    function getPageFilename(pageNum) {
+      return pageNum === 1 || !pageNum ? 'data.json' : 'data-' + pageNum + '.json';
+    }
+
+    function getPageParam() {
+      var params = new URLSearchParams(window.location.search);
+      var page = params.get('page');
+      if (page && /^\d+$/.test(page)) return parseInt(page);
+      return 1;
+    }
+
     function buildParticipants(d) {
       function lines(s) { return esc(s).replace(/\n/g, '<br/>'); }
       return 'Сторона 1:<br/>' + lines(d.side1Name || '') +
@@ -666,7 +677,9 @@
       setHtml('field-note', esc(d.note || '').replace(/\n/g, '<br/>'));
     }
 
-    fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/data.json?_=' + Date.now(), { cache: 'no-store' })
+    var pageNum = getPageParam();
+    var filename = getPageFilename(pageNum);
+    fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/' + filename + '?_=' + Date.now(), { cache: 'no-store' })
       .then(function(r) { return r.json(); })
       .then(render)
       .catch(function() { render(DEFAULTS); });
