@@ -687,7 +687,9 @@
     //    поэтому только как последний запасной путь.
     var sources = [
       function() {
-        return fetch('https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename,
+        // ?_=… обязателен: без токена ответы API идут через CDN GitHub (max-age=60)
+        // и до минуты отдают версию ДО сохранения; уникальный параметр кеш обходит.
+        return fetch('https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename + '?_=' + Date.now(),
           { headers: { 'Accept': 'application/vnd.github.raw+json' }, cache: 'no-store' });
       },
       function() { return fetch('/' + filename + '?_=' + Date.now(), { cache: 'no-store' }); },
