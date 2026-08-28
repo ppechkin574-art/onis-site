@@ -679,10 +679,35 @@
 
     var pageNum = getPageParam();
     var filename = getPageFilename(pageNum);
-    fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/' + filename + '?_=' + Date.now(), { cache: 'no-store' })
-      .then(function(r) { return r.json(); })
-      .then(render)
-      .catch(function() { render(DEFAULTS); });
+    // Источники по убыванию свежести:
+    // 1) GitHub API — файл виден сразу после сохранения в админке
+    //    (без токена лимит 60 запросов в час с одного IP);
+    // 2) свой хостинг (Cloudflare) — обновляется через ~1 минуту после коммита;
+    // 3) raw.githubusercontent.com — кеширует на 5 минут и игнорирует ?_=,
+    //    поэтому только как последний запасной путь.
+    var sources = [
+      function() {
+        return fetch('https://api.github.com/repos/ppechkin574-art/onis-site/contents/' + filename,
+          { headers: { 'Accept': 'application/vnd.github.raw+json' }, cache: 'no-store' });
+      },
+      function() { return fetch('/' + filename + '?_=' + Date.now(), { cache: 'no-store' }); },
+      function() {
+        return fetch('https://raw.githubusercontent.com/ppechkin574-art/onis-site/main/' + filename + '?_=' + Date.now(), { cache: 'no-store' });
+      }
+    ];
+    function tryNext(i) {
+      if (i >= sources.length) return Promise.reject(new Error('no source'));
+      return sources[i]()
+        .then(function(r) {
+          // Хостинг отдаёт index.html с кодом 200 на любой несуществующий путь —
+          // HTML вместо JSON означает «файла нет», идём к следующему источнику.
+          var ct = r.headers.get('content-type') || '';
+          if (!r.ok || /html/i.test(ct)) throw new Error('bad ' + r.status);
+          return r.json();
+        })
+        .catch(function() { return tryNext(i + 1); });
+    }
+    tryNext(0).then(render).catch(function() { render(DEFAULTS); });
   })();
 </script>
 </body>
